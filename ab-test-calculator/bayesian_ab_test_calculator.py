@@ -119,8 +119,8 @@ class BayesianABTestCalculator:
                 ],
                 columns=["#lost", "#won", "winrate"], index=["A", "B"])
 
-        txt = f"B lift with respect to A is {lift * 100:2.2f}%.  \n"
-        better_group = "A" if ctrl_winrate > test_winrate else "B"
-        txt += f"{better_group} achieved better results by {abs(np.around(100 * (ctrl_winrate - test_winrate), 2))}%.  \n"
-        txt += f"{better_group} is better with {prob * 100:2.1f}% probability."
+        txt = f"The test group (B) lift with respect to the control group (A) is {lift * 100:2.2f}%.  \n"
+        better_group = "control group (A)" if ctrl_winrate > test_winrate else "test group (B)"
+        txt += f"The {better_group} achieved better results by {abs(np.around(100 * (ctrl_winrate - test_winrate), 2))}%.  \n"
+        txt += f"The {better_group} is better with :green[{prob * 100:2.1f}%] probability."
         return df, txt
