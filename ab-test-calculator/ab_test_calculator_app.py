@@ -6,10 +6,10 @@ def main():
     st.title('Justt ABtest calculator')
 
     # check boxes
-    a_total = st.number_input("A total", min_value=0)
-    a_won = st.number_input("A won", min_value=0, max_value=a_total)
-    b_total = st.number_input("B total", min_value=0)
-    b_won = st.number_input("B won", min_value=0, max_value=b_total)
+    a_total = st.number_input("Control group (A) total", min_value=0)
+    a_won = st.number_input("Control group (A) won", min_value=0, max_value=a_total)
+    b_total = st.number_input("Test group (B) total", min_value=0)
+    b_won = st.number_input("Test group (B) won", min_value=0, max_value=b_total)
 
     st.markdown(
         """
