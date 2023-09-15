@@ -118,9 +118,18 @@ class BayesianABTestCalculator:
                     ],
                 ],
                 columns=["#lost", "#won", "winrate"], index=["A", "B"])
-
-        txt = f"The test group (B) lift with respect to the control group (A) is {lift * 100:2.2f}%.  \n"
-        better_group = "control group (A)" if ctrl_winrate > test_winrate else "test group (B)"
-        txt += f"The {better_group} achieved better results by {abs(np.around(100 * (ctrl_winrate - test_winrate), 2))}%.  \n"
-        txt += f"The {better_group} is better with :green[{prob * 100:2.1f}%] probability."
+        color = BayesianABTestCalculator._get_color(prob)
+        txt = f"The test group (B) lift with respect to the control group (A) is :{color}[{lift * 100:2.2f}%].  \n"
+        # better_group = "control group (A)" if ctrl_winrate > test_winrate else "test group (B)"
+        txt += f"The test group (B) win rate improvement with respect to the control group (A)" \
+               f" is :{color}[{abs(np.around(100 * (ctrl_winrate - test_winrate), 2))}%].  \n"
+        txt += f"The test group (B) is better than the control group (A) with :{color}[{prob * 100:2.1f}%] probability."
         return df, txt
+
+    @staticmethod
+    def _get_color(prob: float) -> str:
+        if prob >= 0.85:
+            return 'green'
+        elif prob >= 0.5:
+            return 'orange'
+        return 'red'
