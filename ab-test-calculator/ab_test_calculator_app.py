@@ -4,7 +4,7 @@ from bayesian_ab_test_calculator import BayesianABTestCalculator
 
 def main():
     st.title('Justt ABtest calculator')
-
+    st.write("Recommended amount: at least 10,000 per group.  \nOn that amount, 85% probability is approximately achieved by 3% lift.")
     # check boxes
     a_total = st.number_input("Control group (A) total", min_value=0)
     a_won = st.number_input("Control group (A) won", min_value=0, max_value=a_total)
