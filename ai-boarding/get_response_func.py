@@ -189,9 +189,6 @@ def process_question_apify(question):
     urls = question["urls"]
     prompt = question["prompt"]
 
-    print("---prompt: ", prompt)
-    print("---urls: ", urls)
-
     # Prepare the Actor input
     run_input = {
         "startUrls": urls,
@@ -228,7 +225,6 @@ def process_question_apify(question):
     # Fetch and print Actor results from the run's dataset (if there are any)
     formatted_responses = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items(): #.iterate_items(limit=1):
-        print("----item: ", item)
         output = item["answer"]
         try:
             formatted_response =  ast.literal_eval(output.strip("'").strip().strip('`').replace("json", "").replace("\n", ""))
