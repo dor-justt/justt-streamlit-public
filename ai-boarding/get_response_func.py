@@ -280,8 +280,8 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
     get_terms_info = f"From the information in this website, answer the following three questions and return the " \
                      "answers in a json format: {'customer_support': answer_to_question_1, " \
                      "'cancellation': answer_to_question_2, 'refund_policy': answer_to_question_3}. " \
-                     "If the given text does not contain required information replace " \
-                     "X with 'NULL'. " \
+                     "If the text from the website does not contain required information to answer the question replace " \
+                     "X with 'NULL'. Don't answer based on your previous knowledge." \
                      "1. What is the maximal timeframe mentioned " \
                      "per purchase for customer support? Summarize it and also provide the relevant paragraph " \
                      "from the Terms of Service and save it as quote. If there are any specific conditions for " \
