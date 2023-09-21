@@ -318,7 +318,7 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
             return any(word in string for word in word_list)
 
         # Filter strings that contain at least one word from the word list and add the parent link
-        urls = urls + [{"url": string} for string in links if contains_word(string, word_list)]
+        urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
 
     questions_gpt = [{"prompt": get_name_description_industry, "urls": [{"url": url}]},
                      {"prompt": get_channels_billing_email, "urls": urls},
