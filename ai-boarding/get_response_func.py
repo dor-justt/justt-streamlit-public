@@ -189,6 +189,9 @@ def process_question_apify(question):
     urls = question["urls"]
     prompt = question["prompt"]
 
+    print("---prompt: ", prompt)
+    print("---urls: ", urls)
+
     # Prepare the Actor input
     run_input = {
         "startUrls": urls,
@@ -225,6 +228,7 @@ def process_question_apify(question):
     # Fetch and print Actor results from the run's dataset (if there are any)
     formatted_responses = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items(): #.iterate_items(limit=1):
+        print("----item: ", item)
         output = item["answer"]
         try:
             formatted_response =  ast.literal_eval(output.strip("'").strip().strip('`').replace("json", "").replace("\n", ""))
@@ -318,7 +322,7 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
             return any(word in string for word in word_list)
 
         # Filter strings that contain at least one word from the word list and add the parent link
-        urls = urls + [{"url": string} for string in links if contains_word(string, word_list)]
+        urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
 
     questions_gpt = [{"prompt": get_name_description_industry, "urls": [{"url": url}]},
                      {"prompt": get_channels_billing_email, "urls": urls},
