@@ -17,7 +17,6 @@ if st.session_state.mode == "Get response by URL":
 
     st.markdown("Use this tool to collect information about the merchant as part of the onboarding research. "
              "Just fill in the merchant's website and click go! \n")
-    st.markdown("Note: The information reliability must be verified (AI can get creative)")
     st.markdown("**Your feedback is appreciated!** At the bottom you will find a CSV template, download it and fill in the following: \n")
     st.markdown("like_or_dislike \n")
     st.markdown("comments: comments you have about the tool outputs \n")
@@ -25,7 +24,8 @@ if st.session_state.mode == "Get response by URL":
     st.markdown("Upload the CSV file to: https://drive.google.com/drive/folders/17TlhsWgsRqcForpTxrxosWLGd5BrZRF1?usp=drive_link")
 
     st.text_input("URL", key="URL")
-
+    st.markdown(
+        "**Note: please provide a list of the informative URLS such as: T&Cs, refund policy, about us etc.** Seperete the links with a comma.")
     st.text_input("Additional URLs", key="additional_urls")
 
     # access the value
