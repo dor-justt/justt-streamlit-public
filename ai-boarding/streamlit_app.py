@@ -104,10 +104,10 @@ if st.session_state.mode == "Get response by URL":
         st.divider()
         df = pd.DataFrame({"question": pd.Series(["merchant_name", "description", "industry", "channels",
                                                   "billings", "email_address", "offerings", "cancellation",
-                                                  "refund_policy", "delivery_methods", "liability"]),
+                                                  "refund_policy", "delivery_methods", "liability", "url", "additional_urls"]),
                            "response": pd.Series([merchant_name, description, industry, channels,
                                                   billings, email_address, offerings, cancellation,
-                                                  refund_policy, delivery_methods, liability]),
+                                                  refund_policy, delivery_methods, liability, url, additional_urls]),
                            "like_or_dislike": None,
                            "comments": None,
                            "suggestion": None})
