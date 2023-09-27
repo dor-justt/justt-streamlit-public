@@ -59,7 +59,7 @@ if st.session_state.mode == "Get response by URL":
         channels = responses["channels"]
         billings = responses["billings"]
         email_address = responses["emailAddress"]
-        customer_support = responses["customer_support"]
+        offerings = responses["offerings"]
         cancellation = responses["cancellation"]
         refund_policy = responses["refund_policy"]
         delivery_methods = responses["delivery_methods"]
@@ -83,8 +83,8 @@ if st.session_state.mode == "Get response by URL":
         st.subheader("email_address")
         st.write(email_address)
 
-        st.subheader("customer_support")
-        st.write(customer_support)
+        st.subheader("offerings")
+        st.write(offerings)
 
         st.subheader("cancellation")
         st.write(cancellation)
@@ -103,10 +103,10 @@ if st.session_state.mode == "Get response by URL":
 
         st.divider()
         df = pd.DataFrame({"question": pd.Series(["merchant_name", "description", "industry", "channels",
-                                                  "billings", "email_address", "customer_support", "cancellation",
+                                                  "billings", "email_address", "offerings", "cancellation",
                                                   "refund_policy", "delivery_methods", "liability"]),
                            "response": pd.Series([merchant_name, description, industry, channels,
-                                                  billings, email_address, customer_support, cancellation,
+                                                  billings, email_address, offerings, cancellation,
                                                   refund_policy, delivery_methods, liability]),
                            "like_or_dislike": None,
                            "comments": None,
