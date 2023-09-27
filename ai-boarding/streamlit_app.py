@@ -17,7 +17,6 @@ if st.session_state.mode == "Get response by URL":
 
     st.markdown("Use this tool to collect information about the merchant as part of the onboarding research. "
              "Just fill in the merchant's website and click go! \n")
-    st.markdown("Note: The information reliability must be verified (AI can get creative)")
     st.markdown("**Your feedback is appreciated!** At the bottom you will find a CSV template, download it and fill in the following: \n")
     st.markdown("like_or_dislike \n")
     st.markdown("comments: comments you have about the tool outputs \n")
@@ -25,9 +24,14 @@ if st.session_state.mode == "Get response by URL":
     st.markdown("Upload the CSV file to: https://drive.google.com/drive/folders/17TlhsWgsRqcForpTxrxosWLGd5BrZRF1?usp=drive_link")
 
     st.text_input("URL", key="URL")
+    st.markdown(
+        "**Note: please provide a list of the informative URLS such as: T&Cs, refund policy, about us etc.** Seperete the links with a comma.")
+    st.text_input("Additional URLs", key="additional_urls")
 
     # access the value
     url = st.session_state.URL
+    additional_urls = st.session_state.additional_urls.replace(" ", "").split(",")
+    additional_urls = [i for i in additional_urls if i]
 
     st.markdown(
         """
@@ -46,7 +50,7 @@ if st.session_state.mode == "Get response by URL":
     )
     if st.button('GO!'):
 
-        responses, questions = get_questionnaire_responses(url)
+        responses, questions = get_questionnaire_responses(url, additional_urls)
 
         st.subheader(f"**URL:** {url}")
         merchant_name = responses["merchant_name"]
@@ -55,7 +59,7 @@ if st.session_state.mode == "Get response by URL":
         channels = responses["channels"]
         billings = responses["billings"]
         email_address = responses["emailAddress"]
-        customer_support = responses["customer_support"]
+        offerings = responses["offerings"]
         cancellation = responses["cancellation"]
         refund_policy = responses["refund_policy"]
         delivery_methods = responses["delivery_methods"]
@@ -79,8 +83,8 @@ if st.session_state.mode == "Get response by URL":
         st.subheader("email_address")
         st.write(email_address)
 
-        st.subheader("customer_support")
-        st.write(customer_support)
+        st.subheader("offerings")
+        st.write(offerings)
 
         st.subheader("cancellation")
         st.write(cancellation)
@@ -99,10 +103,10 @@ if st.session_state.mode == "Get response by URL":
 
         st.divider()
         df = pd.DataFrame({"question": pd.Series(["merchant_name", "description", "industry", "channels",
-                                                  "billings", "email_address", "customer_support", "cancellation",
+                                                  "billings", "email_address", "offerings", "cancellation",
                                                   "refund_policy", "delivery_methods", "liability"]),
                            "response": pd.Series([merchant_name, description, industry, channels,
-                                                  billings, email_address, customer_support, cancellation,
+                                                  billings, email_address, offerings, cancellation,
                                                   refund_policy, delivery_methods, liability]),
                            "like_or_dislike": None,
                            "comments": None,
