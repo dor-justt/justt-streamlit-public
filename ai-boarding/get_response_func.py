@@ -242,10 +242,9 @@ def get_response_single_prompt(prompt):
     )
     aiplatform.init(credentials=credentials)
     aiplatform.init(project='datascience-393713')
-    print("------prompt: ", prompt)
     return process_question_vertax(prompt)
 
-def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
+def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> [Dict, List[Dict]]:
 
     # Create API client.
     credentials = service_account.Credentials.from_service_account_info(
@@ -267,7 +266,9 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
                                     f"only use the options provided above, don't invent other options. Return the answer as a string."
     get_channels_billing_email = f"From the information in this website, answer the following three questions and return the " \
                                  "answers in a json format: {'channels': answer_to_question_1, " \
-                                 "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. " \
+                                 "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. If the text " \
+                                 "from the website does not contain required information to answer the question return " \
+                                 "'NULL'. Don't answer based on your previous knowledge." \
                                  "1. See this list of selling channel options: " \
                                  f"'Website, Mobile app, 3rd party, Phone calls'. Choose only the options the provided " \
                                  f"company uses to sell their products. You can only choose out the options provided above, " \
@@ -306,19 +307,22 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
                            "2. who takes liability on the following topics? Chargebacks (fraud transactions and " \
                            "service), delivery issues and product quality? Return the answer as a json in this format: " \
                            "{'Chargebacks': X, 'delivery_issues': X, 'quality': X}. If this information is missing, replace X with NULL."
+    print("---additional_urls: ", additional_urls)
+    if additional_urls is not None and len(additional_urls)>0:
+        urls = [{"url": url}] + [{"url": string} for string in additional_urls]
+    else:
+        # scrape start URLs for apify tool
+        links = get_links(url)
+        urls = [{"url": url}]
+        if len(links) > 0:
+            word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies"]
 
-    # scrape start URLs for apify tool
-    links = get_links(url)
-    urls = [{"url": url}]
-    if len(links) > 0:
-        word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies"]
+            # Function to check if a string contains any word from the word list
+            def contains_word(string, word_list):
+                return any(word in string for word in word_list)
 
-        # Function to check if a string contains any word from the word list
-        def contains_word(string, word_list):
-            return any(word in string for word in word_list)
-
-        # Filter strings that contain at least one word from the word list and add the parent link
-        urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
+            # Filter strings that contain at least one word from the word list and add the parent link
+            urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
 
     questions_gpt = [{"prompt": get_name_description_industry, "urls": [{"url": url}]},
                      {"prompt": get_channels_billing_email, "urls": urls},
