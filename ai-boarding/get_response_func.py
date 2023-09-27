@@ -136,14 +136,6 @@ def choose_best_response(responses: List[List[Dict]]):
         best_responses["emailAddress"] = pd.Series(email_responses).value_counts().index[0]
 
     # customer_support, cancellation, refund_policy
-    customer_support_responses = [response["customer_support"] for response in responses[2] if response is not None and
-                                  "customer_support" in response.keys() and
-                                  response["customer_support"] != "NULL" and
-                                  "NULL" not in response["customer_support"] and
-                                  isinstance(response["customer_support"], Dict) and
-                                  response["customer_support"] is not None]
-    best_responses["customer_support"] = aggregate_responses(responses=customer_support_responses, response_type="json")
-
     cancellation_responses = [response["cancellation"] for response in responses[2] if response is not None and
                               "cancellation" in response.keys() and
                                   response["cancellation"] != "NULL" and
@@ -159,6 +151,11 @@ def choose_best_response(responses: List[List[Dict]]):
                               isinstance(response["refund_policy"], str) and
                               response["refund_policy"] is not None]
     best_responses["refund_policy"] = aggregate_responses(responses=refund_policy_responses, response_type="str")
+
+    offerings_responses = [response["offerings"] for response in responses[2] if response is not None and len(response["offerings"]) > 0 and
+                          response["offerings"] != "NULL" and isinstance(response["offerings"], list) and response[
+                              "offerings"] is not None]
+    best_responses["offerings"] = aggregate_responses(responses=offerings_responses, response_type="list")
 
     delivery_methods_responses = [response["delivery_methods"] for response in responses[3] if response is not None and
                                   "delivery_methods" in response.keys() and
@@ -242,10 +239,9 @@ def get_response_single_prompt(prompt):
     )
     aiplatform.init(credentials=credentials)
     aiplatform.init(project='datascience-393713')
-    print("------prompt: ", prompt)
     return process_question_vertax(prompt)
 
-def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
+def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> [Dict, List[Dict]]:
 
     # Create API client.
     credentials = service_account.Credentials.from_service_account_info(
@@ -267,7 +263,9 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
                                     f"only use the options provided above, don't invent other options. Return the answer as a string."
     get_channels_billing_email = f"From the information in this website, answer the following three questions and return the " \
                                  "answers in a json format: {'channels': answer_to_question_1, " \
-                                 "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. " \
+                                 "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. If the text " \
+                                 "from the website does not contain required information to answer the question return " \
+                                 "'NULL'. Don't answer based on your previous knowledge." \
                                  "1. See this list of selling channel options: " \
                                  f"'Website, Mobile app, 3rd party, Phone calls'. Choose only the options the provided " \
                                  f"company uses to sell their products. You can only choose out the options provided above, " \
@@ -278,21 +276,18 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
                                  f"many answers as applicable, but not options that are not listed. Return the answer as a list of strings. " \
                                  f"3. What is the merchant's customer support email? Return the answer as a string."
     get_terms_info = f"From the information in this website, answer the following three questions and return the " \
-                     "answers in a json format: {'customer_support': answer_to_question_1, " \
-                     "'cancellation': answer_to_question_2, 'refund_policy': answer_to_question_3}. " \
+                     "answers in a json format: {'cancellation': answer_to_question_1, 'refund_policy': answer_to_question_2, offerings: answer_to_question_3}. " \
                      "If the text from the website does not contain required information to answer the question replace " \
                      "X with 'NULL'. Don't answer based on your previous knowledge." \
-                     "1. What is the maximal timeframe mentioned " \
-                     "per purchase for customer support? Summarize it and also provide the relevant paragraph " \
-                     "from the Terms of Service and save it as quote. If there are any specific conditions for " \
-                     "it, mention them. Provide URL for the source you use for your answer. Return the answer " \
-                     "as a json in this format: {'timeframe': X, 'summary': X, 'quote': X , 'specificConditions': X, 'source': X} " \
-                     "2. What is the maximal timeframe mentioned per purchase for the cancellation policy? Summarize " \
-                     "it and also provide the relevant quotes from the website. If there are any specific " \
-                     "conditions for it, mention them. Provide URL for the source you use for your answer. " \
-                     "Return the answer as a json in this format: {'timeframe': X, 'summary': X, 'quote': X , " \
-                     "'specificConditions': X, 'source': X}" \
-                     "3. Based on the information on the website, summarize the exact conditions to get a refund. return it as a string"
+                     "1.Based on the information on the website, summarize the cancellation policy. If there are any specific " \
+                     "conditions for cancellation, mention them. Provide the relevant quotes from the website and the URL for the source you use for your answer. " \
+                     "Return the answer as a json in this format: {'summary': X, 'quote': X , 'source': X}" \
+                     "2. Based on the information on the website, summarize the exact conditions to get a refund. return it as a string " \
+                     "3. See this list of offerings: Physical Goods, Digital Goods, Software, In-Person Services, " \
+                     "Personal Banking, Payment Facilitation, Investment Services, Accommodation, Top Up Services, " \
+                     "Crypto Currencies, Gaming, Gambling, NFTs, Hotels, Car Rentals, Flights, Tickets. Based on the " \
+                     "information on the website, what does the company sell? You can only choose out the options " \
+                     "provided above. Return the answer as a list of strings"
     get_crypto_info = f"From the information in this website answer the following question. Does the platform use " \
                       "blockchain to transfer the crypto or the crypto transfer is done on it’s own platform? if the " \
                       "merchant's industry is not crypto return NULL. " \
@@ -307,18 +302,21 @@ def get_questionnaire_responses(url: str) -> [Dict, List[Dict]]:
                            "service), delivery issues and product quality? Return the answer as a json in this format: " \
                            "{'Chargebacks': X, 'delivery_issues': X, 'quality': X}. If this information is missing, replace X with NULL."
 
-    # scrape start URLs for apify tool
-    links = get_links(url)
-    urls = [{"url": url}]
-    if len(links) > 0:
-        word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies"]
+    if additional_urls is not None and len(additional_urls)>0:
+        urls = [{"url": url}] + [{"url": string} for string in additional_urls]
+    else:
+        # scrape start URLs for apify tool
+        links = get_links(url)
+        urls = [{"url": url}]
+        if len(links) > 0:
+            word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies"]
 
-        # Function to check if a string contains any word from the word list
-        def contains_word(string, word_list):
-            return any(word in string for word in word_list)
+            # Function to check if a string contains any word from the word list
+            def contains_word(string, word_list):
+                return any(word in string for word in word_list)
 
-        # Filter strings that contain at least one word from the word list and add the parent link
-        urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
+            # Filter strings that contain at least one word from the word list and add the parent link
+            urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
 
     questions_gpt = [{"prompt": get_name_description_industry, "urls": [{"url": url}]},
                      {"prompt": get_channels_billing_email, "urls": urls},
