@@ -301,7 +301,7 @@ def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> 
                            "2. who takes liability on the following topics? Chargebacks (fraud transactions and " \
                            "service), delivery issues and product quality? Return the answer as a json in this format: " \
                            "{'Chargebacks': X, 'delivery_issues': X, 'quality': X}. If this information is missing, replace X with NULL."
-    print("---additional_urls: ", additional_urls)
+
     if additional_urls is not None and len(additional_urls)>0:
         urls = [{"url": url}] + [{"url": string} for string in additional_urls]
     else:
