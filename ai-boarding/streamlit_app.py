@@ -26,8 +26,12 @@ if st.session_state.mode == "Get response by URL":
 
     st.text_input("URL", key="URL")
 
+    st.text_input("Additional URLs", key="additional_urls")
+
     # access the value
     url = st.session_state.URL
+    additional_urls = st.session_state.additional_urls.replace(" ", "").split(",")
+    additional_urls = [i for i in additional_urls if i]
 
     st.markdown(
         """
@@ -46,7 +50,7 @@ if st.session_state.mode == "Get response by URL":
     )
     if st.button('GO!'):
 
-        responses, questions = get_questionnaire_responses(url)
+        responses, questions = get_questionnaire_responses(url, additional_urls)
 
         st.subheader(f"**URL:** {url}")
         merchant_name = responses["merchant_name"]
