@@ -117,6 +117,7 @@ def choose_best_response(responses: List[List[Dict]]):
     best_responses["merchant_name"] = responses[0][0]["company"]
     best_responses["description"] = responses[0][0]["description"]
     best_responses["industry"] = responses[0][0]["industry"]
+    best_responses["offerings"] = responses[0][0]["offerings"]
 
     # channels, billing, email
     channels_responses = [response["channels"] for response in responses[1] if response is not None and len(response["channels"])>0 and
@@ -151,11 +152,6 @@ def choose_best_response(responses: List[List[Dict]]):
                               isinstance(response["refund_policy"], str) and
                               response["refund_policy"] is not None]
     best_responses["refund_policy"] = aggregate_responses(responses=refund_policy_responses, response_type="str")
-
-    offerings_responses = [response["offerings"] for response in responses[2] if response is not None and len(response["offerings"]) > 0 and
-                          response["offerings"] != "NULL" and isinstance(response["offerings"], list) and response[
-                              "offerings"] is not None]
-    best_responses["offerings"] = aggregate_responses(responses=offerings_responses, response_type="list")
 
     delivery_methods_responses = [response["delivery_methods"] for response in responses[3] if response is not None and
                                   "delivery_methods" in response.keys() and
@@ -241,7 +237,7 @@ def get_response_single_prompt(prompt):
     aiplatform.init(project='datascience-393713')
     return process_question_vertax(prompt)
 
-def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> [Dict, List[Dict]]:
+def get_questionnaire_responses(url: str, urls: List[str] = None) -> [Dict, List[Dict]]:
 
     # Create API client.
     credentials = service_account.Credentials.from_service_account_info(
@@ -250,9 +246,9 @@ def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> 
     aiplatform.init(credentials=credentials)
     aiplatform.init(project='datascience-393713')
 
-    get_name_description_industry = f"From the information in this website, answer the following three questions and return the " \
+    get_name_description_industry = f"From the information in this website, answer the following four questions and return the " \
                                     "answers in a json format: {'company': answer_to_question_1, " \
-                                    "'description': answer_to_question_2, 'industry': answer_to_question_3}. " \
+                                    "'description': answer_to_question_2, 'industry': answer_to_question_3, 'offerings': answer_to_question_4}. " \
                                     "1. Search the company name. Return the answer as a string. " \
                                     "2. Describe the company in up to five sentences, and no less than " \
                                     f"three sentences. Focus on what they do as a company, and what services they offer. " \
@@ -260,34 +256,34 @@ def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> 
                                     f"3. See this list of one-word industry descriptions: " \
                                     f"'Retail, Financial Services, Travel, Gaming, Crypto, Software Subscription, Gambling, " \
                                     f"Ticketing, Delivery'. Choose the description that suits the provided company the most. You can " \
-                                    f"only use the options provided above, don't invent other options. Return the answer as a string."
+                                    f"only use the options provided above, don't invent other options. Return the answer as a string." \
+                                    f"4. See this list of offerings descriptions: " \
+                                    f"'Physical Goods, Digital Goods, Software, In-Person Services, Personal Banking, Payment Facilitation, Investment Services, Accommodation, Top Up Services, Crypto Currencies, Gaming, Gambling, NFTs, Hotels, Car Rentals, Flights, Tickets.'. " \
+                                    f"Based on the information on the website, what type of offerings does the " \
+                                    f"company sell? Choose only the options that suits the provided company the most. You can " \
+                                    f"only use the options provided above, don't invent other options. Ecplain why did you choose each one of the options. Return the answer as a json."
     get_channels_billing_email = f"From the information in this website, answer the following three questions and return the " \
                                  "answers in a json format: {'channels': answer_to_question_1, " \
                                  "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. If the text " \
                                  "from the website does not contain required information to answer the question return " \
                                  "'NULL'. Don't answer based on your previous knowledge." \
                                  "1. See this list of selling channel options: " \
-                                 f"'Website, Mobile app, 3rd party, Phone calls'. Choose only the options the provided " \
+                                 f"'Website, Mobile app, 3rd party, Phone calls'. Based on the information on the website, choose only the options the provided " \
                                  f"company uses to sell their products. You can only choose out the options provided above, " \
                                  f"don't invent other options. Return the answer as a list of strings" \
                                  f"2. See this list of billing models: 'One time payment, " \
-                                 f"Subscriptions, Installments'. out of this list, Choose only the options the provided company " \
+                                 f"Subscriptions, Installments'. out of this list, Based on the information on the website, choose only the options the provided company " \
                                  f"offers. You can only choose out the options provided above, don't show other options. Choose as " \
                                  f"many answers as applicable, but not options that are not listed. Return the answer as a list of strings. " \
                                  f"3. What is the merchant's customer support email? Return the answer as a string."
-    get_terms_info = f"From the information in this website, answer the following three questions and return the " \
-                     "answers in a json format: {'cancellation': answer_to_question_1, 'refund_policy': answer_to_question_2, offerings: answer_to_question_3}. " \
+    get_terms_info = f"From the information in this website, answer the following two questions and return the " \
+                     "answers in a json format: {'cancellation': answer_to_question_1, 'refund_policy': answer_to_question_2}. " \
                      "If the text from the website does not contain required information to answer the question replace " \
                      "X with 'NULL'. Don't answer based on your previous knowledge." \
                      "1.Based on the information on the website, summarize the cancellation policy. If there are any specific " \
                      "conditions for cancellation, mention them. Provide the relevant quotes from the website and the URL for the source you use for your answer. " \
                      "Return the answer as a json in this format: {'summary': X, 'quote': X , 'source': X}" \
-                     "2. Based on the information on the website, summarize the exact conditions to get a refund. return it as a string " \
-                     "3. See this list of offerings: Physical Goods, Digital Goods, Software, In-Person Services, " \
-                     "Personal Banking, Payment Facilitation, Investment Services, Accommodation, Top Up Services, " \
-                     "Crypto Currencies, Gaming, Gambling, NFTs, Hotels, Car Rentals, Flights, Tickets. Based on the " \
-                     "information on the website, what does the company sell? You can only choose out the options " \
-                     "provided above. Return the answer as a list of strings"
+                     "2. Based on the information on the website, summarize the exact conditions to get a refund. return it as a string "
     get_crypto_info = f"From the information in this website answer the following question. Does the platform use " \
                       "blockchain to transfer the crypto or the crypto transfer is done on it’s own platform? if the " \
                       "merchant's industry is not crypto return NULL. " \
@@ -295,28 +291,12 @@ def get_questionnaire_responses(url: str, additional_urls: List[str] = None) -> 
     get_delivery_and_liability = f"From the information in this website, answer the following two questions and return the " \
                            "answers in a json format: {'delivery_methods': answer_to_question_1, " \
                            "'liability': answer_to_question_2}. " \
-                           "1. what delivery methods does the seller offer? Shipping, in store pickup or other? " \
-                                 "If the merchant doesn't sell products return NULL. Return " \
-                           "the answer as a list of strings." \
-                           "2. who takes liability on the following topics? Chargebacks (fraud transactions and " \
+                           "1. Based on the information on the website, If the merchant sell physical things, answer this question, if not - return NULL." \
+                                 " what delivery methods does the seller offer? Shipping, in store pickup or other? " \
+                                 "Return the answer as a list of strings. If the merchant doesn't sell physical things return NULL." \
+                           "2. Based on the information on the website, who takes liability on the following topics? Chargebacks (fraud transactions and " \
                            "service), delivery issues and product quality? Return the answer as a json in this format: " \
                            "{'Chargebacks': X, 'delivery_issues': X, 'quality': X}. If this information is missing, replace X with NULL."
-
-    if additional_urls is not None and len(additional_urls)>0:
-        urls = [{"url": url}] + [{"url": string} for string in additional_urls]
-    else:
-        # scrape start URLs for apify tool
-        links = get_links(url)
-        urls = [{"url": url}]
-        if len(links) > 0:
-            word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies"]
-
-            # Function to check if a string contains any word from the word list
-            def contains_word(string, word_list):
-                return any(word in string for word in word_list)
-
-            # Filter strings that contain at least one word from the word list and add the parent link
-            urls = urls + [{"url": string} for string in links if contains_word(string, word_list) and ".pdf" not in string]
 
     questions_gpt = [{"prompt": get_name_description_industry, "urls": [{"url": url}]},
                      {"prompt": get_channels_billing_email, "urls": urls},
