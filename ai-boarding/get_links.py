@@ -3,6 +3,15 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from typing import Union, List, Dict
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+import streamlit as st
+
+@st.experimental_singleton
+def get_driver():
+    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def filter_links(links_list: list[str]):
     word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies", "offerings"]
@@ -52,7 +61,11 @@ def get_links(website_link: str) -> List:
 
     if len(list_links) == 0:
         source="selenium"
-        driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        options = Options()
+        options.add_argument('--disable-gpu')
+        options.add_argument('--headless')
+        driver = get_driver()
+        # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(website_link)
         list_links = [element.get_attribute("href") for element in
                  driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
