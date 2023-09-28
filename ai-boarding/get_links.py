@@ -75,7 +75,11 @@ def get_links(website_link: str) -> List:
 
     search_links = [link for link in list_links if "terms" in link or "polic" in link]
     for link in search_links:
-        driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        options = Options()
+        options.add_argument('--disable-gpu')
+        options.add_argument('--headless')
+        driver = get_driver()
+        # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(link)
         list_links = list_links + [element.get_attribute("href") for element in
                       driver.find_elements(By.CSS_SELECTOR, "a[href*=refund], a[href*=cancel]")]
