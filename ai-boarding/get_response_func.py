@@ -261,7 +261,7 @@ def get_questionnaire_responses(url: str, urls: List[str] = None) -> [Dict, List
                                     f"'Physical Goods, Digital Goods, Software, In-Person Services, Personal Banking, Payment Facilitation, Investment Services, Accommodation, Top Up Services, Crypto Currencies, Gaming, Gambling, NFTs, Hotels, Car Rentals, Flights, Tickets.'. " \
                                     f"Based on the information on the website, what type of offerings does the " \
                                     f"company sell? Choose only the options that suits the provided company the most. You can " \
-                                    f"only use the options provided above, don't invent other options. Ecplain why did you choose each one of the options. Return the answer as a json."
+                                    f"only use the options provided above, don't invent other options. Ecplain why did you choose each one of the options. Return the answer as a string."
     get_channels_billing_email = f"From the information in this website, answer the following three questions and return the " \
                                  "answers in a json format: {'channels': answer_to_question_1, " \
                                  "'billings': answer_to_question_2, 'emailAddress': answer_to_question_3}. If the text " \
