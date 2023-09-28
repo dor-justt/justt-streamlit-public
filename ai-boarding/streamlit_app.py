@@ -3,6 +3,19 @@ from get_response_func import get_questionnaire_responses, get_response_single_p
 import ast
 import pandas as pd
 from get_links import convert_to_dict, get_links
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+@st.cache_resource
+def get_driver():
+    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+options = Options()
+options.add_argument('--disable-gpu')
+options.add_argument('--headless')
+driver = get_driver()
 
 st.header("AI-BOARDING :scream_cat: :100:")
 
@@ -56,7 +69,7 @@ if st.session_state.mode == "Get response by URL":
             urls = convert_to_dict(additional_urls, url)
         else:
             # scrape start URLs for apify tool
-            urls, source = get_links(url)
+            urls, source = get_links(url, driver)
 
         responses, questions = get_questionnaire_responses(url, urls)
 

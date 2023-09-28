@@ -7,11 +7,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-import streamlit as st
 
-@st.cache_resource
-def get_driver(_options):
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=_options)
+# @st.cache_resource
+# def get_driver(_options):
+#     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=_options)
 
 def filter_links(links_list: list[str]):
     word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies", "offerings"]
@@ -29,7 +28,7 @@ def convert_to_dict(links_list: list[str], website_link):
     urls = [{"url": website_link}] + [{"url": string} for string in links_list]
     return urls
 
-def get_links(website_link: str) -> List:
+def get_links(website_link: str, driver) -> List:
     """
     get all sub-URLs in a given URL with maximum depth of 1
     :param website_link: parent URL
@@ -61,12 +60,12 @@ def get_links(website_link: str) -> List:
 
     if len(list_links) == 0:
         source="selenium"
-
-        option = webdriver.ChromeOptions()
-        option.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(options=option, service=service)
-        # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        #
+        # option = webdriver.ChromeOptions()
+        # option.add_argument('--headless')
+        # service = Service(ChromeDriverManager().install())
+        # driver = webdriver.Chrome(options=option, service=service)
+        # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(website_link)
         list_links = [element.get_attribute("href") for element in
                  driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
@@ -76,11 +75,11 @@ def get_links(website_link: str) -> List:
 
     search_links = [link for link in list_links if "terms" in link or "polic" in link]
     for link in search_links:
-        option = webdriver.ChromeOptions()
-        option.add_argument('--headless')
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(options=option, service=service)
-        # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        # option = webdriver.ChromeOptions()
+        # option.add_argument('--headless')
+        # service = Service(ChromeDriverManager().install())
+        # driver = webdriver.Chrome(options=option, service=service)
+        # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(link)
         list_links = list_links + [element.get_attribute("href") for element in
                       driver.find_elements(By.CSS_SELECTOR, "a[href*=refund], a[href*=cancel]")]
