@@ -9,9 +9,9 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import streamlit as st
 
-@st.experimental_singleton
-def get_driver():
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+@st.cache_resource
+def get_driver(_options):
+    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=_options)
 
 def filter_links(links_list: list[str]):
     word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies", "offerings"]
@@ -61,10 +61,11 @@ def get_links(website_link: str) -> List:
 
     if len(list_links) == 0:
         source="selenium"
-        options = Options()
-        options.add_argument('--disable-gpu')
-        options.add_argument('--headless')
-        driver = get_driver()
+
+        option = webdriver.ChromeOptions()
+        option.add_argument('--headless')
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(options=option, service=service)
         # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(website_link)
         list_links = [element.get_attribute("href") for element in
@@ -75,10 +76,10 @@ def get_links(website_link: str) -> List:
 
     search_links = [link for link in list_links if "terms" in link or "polic" in link]
     for link in search_links:
-        options = Options()
-        options.add_argument('--disable-gpu')
-        options.add_argument('--headless')
-        driver = get_driver()
+        option = webdriver.ChromeOptions()
+        option.add_argument('--headless')
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(options=option, service=service)
         # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
         driver.get(link)
         list_links = list_links + [element.get_attribute("href") for element in
