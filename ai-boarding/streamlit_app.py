@@ -2,6 +2,7 @@ import streamlit as st
 from get_response_func import get_questionnaire_responses, get_response_single_prompt
 import ast
 import pandas as pd
+from get_links import convert_to_dict, get_links
 
 st.header("AI-BOARDING :scream_cat: :100:")
 
@@ -50,7 +51,14 @@ if st.session_state.mode == "Get response by URL":
     )
     if st.button('GO!'):
 
-        responses, questions = get_questionnaire_responses(url, additional_urls)
+        if additional_urls is not None and len(additional_urls) > 0:
+            source = "user"
+            urls = convert_to_dict(additional_urls, url)
+        else:
+            # scrape start URLs for apify tool
+            urls, source = get_links(url)
+
+        responses, questions = get_questionnaire_responses(url, urls)
 
         st.subheader(f"**URL:** {url}")
         merchant_name = responses["merchant_name"]
@@ -104,10 +112,10 @@ if st.session_state.mode == "Get response by URL":
         st.divider()
         df = pd.DataFrame({"question": pd.Series(["merchant_name", "description", "industry", "channels",
                                                   "billings", "email_address", "offerings", "cancellation",
-                                                  "refund_policy", "delivery_methods", "liability", "url", "additional_urls"]),
+                                                  "refund_policy", "delivery_methods", "liability", "url", "additional_urls", "urls", "source"]),
                            "response": pd.Series([merchant_name, description, industry, channels,
                                                   billings, email_address, offerings, cancellation,
-                                                  refund_policy, delivery_methods, liability, url, additional_urls]),
+                                                  refund_policy, delivery_methods, liability, url, additional_urls, urls, source]),
                            "like_or_dislike": None,
                            "comments": None,
                            "suggestion": None})
