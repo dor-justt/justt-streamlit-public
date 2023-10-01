@@ -21,7 +21,6 @@ seleniumbase
 webdriver-manager
 
 # hotel pdf parser
-poppler
 pytesseract
 pdf2image
 stqdm==0.0.5
