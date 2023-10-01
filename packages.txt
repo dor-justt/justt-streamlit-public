@@ -1,4 +1,4 @@
-poppler
+poppler-utils
 chromium
 chromium-driver
 tesseract-ocr
