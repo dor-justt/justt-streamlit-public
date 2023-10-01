@@ -58,32 +58,32 @@ def get_links(website_link: str, driver = None) -> List:
     if len(list_links) > 0:
         list_links = filter_links(list_links)
 
-    # if len(list_links) == 0:
-    #     source="selenium"
-    #     #
-    #     # option = webdriver.ChromeOptions()
-    #     # option.add_argument('--headless')
-    #     # service = Service(ChromeDriverManager().install())
-    #     # driver = webdriver.Chrome(options=option, service=service)
-    #     # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
-    #     driver.get(website_link)
-    #     list_links = [element.get_attribute("href") for element in
-    #              driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
-    #                                                    "a[href*=info], a[href*=about], a[href*=faq], "
-    #                                                    "a[href*=policy], a[href*=policies], a[href*=offerings]")]
-    #     driver.quit()
-    #
-    # search_links = [link for link in list_links if "terms" in link or "polic" in link]
-    # for link in search_links:
-    #     # option = webdriver.ChromeOptions()
-    #     # option.add_argument('--headless')
-    #     # service = Service(ChromeDriverManager().install())
-    #     # driver = webdriver.Chrome(options=option, service=service)
-    #     # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
-    #     driver.get(link)
-    #     list_links = list_links + [element.get_attribute("href") for element in
-    #                   driver.find_elements(By.CSS_SELECTOR, "a[href*=refund], a[href*=cancel]")]
-    #     driver.quit()
+    if len(list_links) == 0:
+        source="selenium"
+        #
+        # option = webdriver.ChromeOptions()
+        # option.add_argument('--headless')
+        # service = Service(ChromeDriverManager().install())
+        # driver = webdriver.Chrome(options=option, service=service)
+        # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        driver.get(website_link)
+        list_links = [element.get_attribute("href") for element in
+                 driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
+                                                       "a[href*=info], a[href*=about], a[href*=faq], "
+                                                       "a[href*=policy], a[href*=policies], a[href*=offerings]")]
+        driver.quit()
+
+    search_links = [link for link in list_links if "terms" in link or "polic" in link]
+    for link in search_links:
+        # option = webdriver.ChromeOptions()
+        # option.add_argument('--headless')
+        # service = Service(ChromeDriverManager().install())
+        # driver = webdriver.Chrome(options=option, service=service)
+        # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+        driver.get(link)
+        list_links = list_links + [element.get_attribute("href") for element in
+                      driver.find_elements(By.CSS_SELECTOR, "a[href*=refund], a[href*=cancel]")]
+        driver.quit()
 
     if len(list_links) > 0:
         # remove duplicates
