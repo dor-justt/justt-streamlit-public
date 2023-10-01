@@ -1,1 +1,6 @@
+# ai boarding app
+chromium
+chromium-driver
+
+# hotel pdf parser
 tesseract-ocr

@@ -16,6 +16,9 @@ typing_extensions==4.5.0
 pydantic==1.10.11
 apify==1.1.4
 langchain==0.0.200
+selenium
+seleniumbase
+webdriver-manager
 
 # hotel pdf parser
 pytesseract
