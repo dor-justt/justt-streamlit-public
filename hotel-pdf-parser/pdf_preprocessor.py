@@ -13,9 +13,7 @@ class PDFPreprocessor:
     def preprocess_pdf(pdf_file) -> Tuple[str, List[str]]:
         image_list = PDFPreprocessor._bytes2imagelist(pdf_file)
         extracted_text = PDFPreprocessor._imagelist2text(image_list)
-        # print("cleaning")
         clean_text = PDFPreprocessor._clean_text(extracted_text)
-        # print("chunking")
         chunks = PDFPreprocessor._get_chunks(clean_text)
         return clean_text, chunks
 
