@@ -2,6 +2,7 @@ import streamlit as st
 
 from pdf_preprocessor import PDFPreprocessor
 from data_extractor import DataExtractor
+from data_post_processor import DataPostProcessor
 
 
 def main():
@@ -23,16 +24,32 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    chargeback_id = st.text_input("chargebackId", '')
     if st.button("GO!", key="go_button") and uploaded_file is not None:
         extracted_text, chunks = PDFPreprocessor.preprocess_pdf(uploaded_file)
-        result = DataExtractor.extract_data(chunks)
+
+        # LLM
+        with st.spinner('Querying the LLM...'):
+            result = DataExtractor.extract_data(chunks)
+
+        # process result
+        processed_result, df = DataPostProcessor.post_process(result, chargeback_id=chargeback_id)
+
         # Explanations
-        names = ['Results', 'Extracted text']
-        tabs = st.tabs(['Results', 'Extracted text'])
-        dic = {'Results': result, 'Extracted text': extracted_text}
+        dic = {'Results': processed_result, 'Raw results': result, 'Extracted text': extracted_text}
+        names = list(dic.keys())
+        tabs = st.tabs(names)
         for t, name in zip(tabs, names):
             with t:
                 st.write(dic[name])
+
+        db = st.download_button(
+            "Download as a CSV",
+            df.to_csv(index=False).encode('utf-8'),
+            f"{chargeback_id}.csv",
+            "text/csv",
+            key='download-csv',
+            )
 
 
 if __name__ == '__main__':
