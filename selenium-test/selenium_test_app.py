@@ -22,15 +22,30 @@ def delete_selenium_log():
 
 
 def run_selenium():
-    name = str()
-    with webdriver.Chrome(options=options) as driver:
-        url = "https://www.unibet.fr/sport/football/europa-league/europa-league-matchs"
-        driver.get(url)
-        xpath = '//*[@class="ui-mainview-block eventpath-wrapper"]'
-        # Wait for the element to be rendered:
-        element = WebDriverWait(driver, 10).until(lambda x: x.find_elements(by=By.XPATH, value=xpath))
-        name = element[0].get_property('attributes')[0]['name']
-    return name
+    url = "https://www.oyorooms.com/"
+    source="selenium"
+    #
+    # option = webdriver.ChromeOptions()
+    # option.add_argument('--headless')
+    # service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(options=options)  #, service=service)
+    # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+    driver.get(url)
+    list_links = [element.get_attribute("href") for element in
+             driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
+                                                   "a[href*=info], a[href*=about], a[href*=faq], "
+                                                   "a[href*=policy], a[href*=policies], a[href*=offerings]")]
+    driver.quit()
+    return list_links
+    # name = str()
+    # with webdriver.Chrome(options=options) as driver:
+    #     # url = "https://www.unibet.fr/sport/football/europa-league/europa-league-matchs"
+    #     driver.get(url)
+    #     xpath = '//*[@class="ui-mainview-block eventpath-wrapper"]'
+    #     # Wait for the element to be rendered:
+    #     element = WebDriverWait(driver, 10).until(lambda x: x.find_elements(by=By.XPATH, value=xpath))
+    #     name = element[0].get_property('attributes')[0]['name']
+    # return name
 
 
 if __name__ == "__main__":
