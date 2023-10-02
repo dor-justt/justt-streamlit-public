@@ -1,9 +1,6 @@
-import os
-
 import streamlit as st
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 
 options = Options()
@@ -16,20 +13,9 @@ options.add_argument("--window-size=1920x1080")
 options.add_argument("--disable-features=VizDisplayCompositor")
 
 
-def delete_selenium_log():
-    if os.path.exists('selenium.log'):
-        os.remove('selenium.log')
-
-
 def run_selenium():
     url = "https://www.oyorooms.com/"
-    source="selenium"
-    #
-    # option = webdriver.ChromeOptions()
-    # option.add_argument('--headless')
-    # service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(options=options)  #, service=service)
-    # # driver = webdriver.Chrome()  # You need to have Chrome WebDriver installed
+    driver = webdriver.Chrome(options=options)
     driver.get(url)
     list_links = [element.get_attribute("href") for element in
              driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
@@ -37,19 +23,9 @@ def run_selenium():
                                                    "a[href*=policy], a[href*=policies], a[href*=offerings]")]
     driver.quit()
     return list_links
-    # name = str()
-    # with webdriver.Chrome(options=options) as driver:
-    #     # url = "https://www.unibet.fr/sport/football/europa-league/europa-league-matchs"
-    #     driver.get(url)
-    #     xpath = '//*[@class="ui-mainview-block eventpath-wrapper"]'
-    #     # Wait for the element to be rendered:
-    #     element = WebDriverWait(driver, 10).until(lambda x: x.find_elements(by=By.XPATH, value=xpath))
-    #     name = element[0].get_property('attributes')[0]['name']
-    # return name
 
 
 if __name__ == "__main__":
-    delete_selenium_log()
     st.set_page_config(page_title="Selenium Test", page_icon='✅', initial_sidebar_state='collapsed')
     st.title('🔨 Selenium Test for Streamlit Sharing')
     st.markdown('''This app is only a very simple test for **Selenium** running on **Streamlit Sharing** runtime.<br>
@@ -62,7 +38,6 @@ if __name__ == "__main__":
         ---
         ''', unsafe_allow_html=True)
 
-    st.balloons()
     if st.button('Start Selenium run'):
         st.info('Selenium is running, please wait...')
         result = run_selenium()
