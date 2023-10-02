@@ -25,7 +25,7 @@ class DataPostProcessor:
         # fill last name by full name
         if len(processed_result[FIELD_NAMES.GUEST_FULL_NAME.outer]) > 0 and processed_result[FIELD_NAMES.GUEST_LAST_NAME.outer] == "":
             processed_result[FIELD_NAMES.GUEST_FIRST_NAME.outer] = processed_result[FIELD_NAMES.GUEST_FULL_NAME.outer].split()[-1]
-            
+
         # fill full name by first and last name
         if len(processed_result[FIELD_NAMES.GUEST_FULL_NAME.outer]) == 0:
             # use both first and last name
@@ -38,7 +38,8 @@ class DataPostProcessor:
                     len(processed_result[FIELD_NAMES.GUEST_LAST_NAME.outer]) == 0:
                 processed_result[FIELD_NAMES.GUEST_FULL_NAME.outer] = processed_result[FIELD_NAMES.GUEST_FIRST_NAME.outer]
             # use last name only
-            elif len(processed_result[FIELD_NAMES.GUEST_FIRST_NAME.outer]) == 0 and len(processed_result[FIELD_NAMES.GUEST_LAST_NAME.outer]) > 0:
+            elif len(processed_result[FIELD_NAMES.GUEST_FIRST_NAME.outer]) == 0 and \
+                    len(processed_result[FIELD_NAMES.GUEST_LAST_NAME.outer]) > 0:
                 processed_result[FIELD_NAMES.GUEST_FULL_NAME.outer] = processed_result[FIELD_NAMES.GUEST_LAST_NAME.outer]
 
         return processed_result
