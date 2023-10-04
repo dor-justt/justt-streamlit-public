@@ -5,7 +5,7 @@ DP = namedtuple("DP", ["inner", "outer"], defaults=["", ""])
 
 @dataclass(frozen=True)
 class FieldNames:
-    CHARGEBACK_ID: DP = DP("chargeback_id", "ChargebackId")
+    CHARGEBACK_ID: DP = DP("chargeback_id", "chargebackId")
     VENUE_TITLE: DP = DP("vendor", "Listing/Venue Title")
     VENUE_ADDRESS: DP = DP("vendor_full_address", "Listing/venue address")
     VENDOR_PHONE: DP = DP("vendor_phone", "Vendor Phone")
