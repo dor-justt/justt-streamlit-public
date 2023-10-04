@@ -43,10 +43,11 @@ def main():
             with t:
                 st.write(dic[name])
 
+        file_name = chargeback_id if len(chargeback_id) > 0 else '___'
         db = st.download_button(
             "Download as a CSV",
             df.to_csv(index=False).encode('utf-8'),
-            f"{chargeback_id}.csv",
+            f"{file_name}.csv",
             "text/csv",
             key='download-csv',
             )
