@@ -17,7 +17,6 @@ class PDFPreprocessor:
         chunks = PDFPreprocessor._get_chunks(clean_text)
         return clean_text, chunks
 
-
     @staticmethod
     def _bytes2imagelist(pdf_file) -> List:
         return pdf2image.convert_from_bytes(pdf_file.getbuffer())
