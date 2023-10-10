@@ -26,6 +26,8 @@ def main():
     )
     chargeback_id = st.text_input("chargebackId", '')
     if st.button("GO!", key="go_button") and uploaded_file is not None:
+
+        # Preprocess result
         extracted_text, chunks = PDFPreprocessor.preprocess_pdf(uploaded_file)
 
         # LLM
@@ -43,6 +45,7 @@ def main():
             with t:
                 st.write(dic[name])
 
+        # to csv
         file_name = chargeback_id if len(chargeback_id) > 0 else '___'
         db = st.download_button(
             "Download as a CSV",
