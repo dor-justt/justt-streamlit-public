@@ -27,7 +27,9 @@ class DataExtractor:
                      f"{FIELD_NAMES.BILLING_ZIP.inner}: <the billing zip code of the customer>," \
                      f"{FIELD_NAMES.BILLING_COUNTRY.inner}: <the billing country of the customer>," \
                      f"{FIELD_NAMES.CHECK_IN_DATE.inner}: <date and time of the check in, in format dd:MM:yyyy HH:mm:ss>, " \
-                     f"{FIELD_NAMES.CHECK_OUT_DATE.inner}: <date and time of the check out, in format dd:MM:yyyy HH:mm:ss>}}.\n" \
+                     f"{FIELD_NAMES.CHECK_OUT_DATE.inner}: <date and time of the check out, in format dd:MM:yyyy HH:mm:ss>, "\
+                     f"{FIELD_NAMES.ORDER_NUMBER.inner}: <Leave this blank>,"\
+                     f"{FIELD_NAMES.TRANSACTION_AMOUNT}: <Leave this blank>}}.\n" \
                      f"For each value in the json, if you can not get the answer, return an empty string. " \
                      f"Your returned answer must always be a json as described"
 
