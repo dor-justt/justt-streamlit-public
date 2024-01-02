@@ -13,12 +13,14 @@ class FieldNames:
     GUEST_LAST_NAME: DP = DP("contact_last_name", "Guest Last Name")
     GUEST_FULL_NAME: DP = DP("customer_full_name", "Guest Full Name")
     BILLING_ADDRESS: DP = DP("billing_address", "Billing - Address 1")
-    BILLING_CITY: DP = DP("Bellevue", "Billing - City")
+    BILLING_CITY: DP = DP("billing_city", "Billing - City")
     BILLING_STATE: DP = DP("billing_state", "Billing - State")
     BILLING_ZIP: DP = DP("billing_zip_code", "Billing - Zip")
     BILLING_COUNTRY: DP = DP("billing_country", "Billing - Country")
     CHECK_IN_DATE: DP = DP("check_in", "Order - Check In/entry (DateTime) start")
     CHECK_OUT_DATE: DP = DP("check_out", "Order - Check Out (DateTime)")
+    ORDER_NUMBER: DP = DP("order_number", "Order Number")
+    TRANSACTION_AMOUNT: DP = DP("transaction_amount", "Transaction amount")
 
 
 FIELD_NAMES = FieldNames()
