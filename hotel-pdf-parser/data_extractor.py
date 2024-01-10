@@ -26,8 +26,8 @@ class DataExtractor:
                      f"{FIELD_NAMES.BILLING_STATE.inner}: <the billing state of the customer>," \
                      f"{FIELD_NAMES.BILLING_ZIP.inner}: <the billing zip code of the customer>," \
                      f"{FIELD_NAMES.BILLING_COUNTRY.inner}: <the billing country of the customer>," \
-                     f"{FIELD_NAMES.CHECK_IN_DATE.inner}: <date and time of the check in, in format dd:MM:yyyy HH:mm:ss>, " \
-                     f"{FIELD_NAMES.CHECK_OUT_DATE.inner}: <date and time of the check out, in format dd:MM:yyyy HH:mm:ss>, "\
+                     f"{FIELD_NAMES.CHECK_IN_DATE.inner}: <date and time of the check in, in ISO format yyyy-MM-dd'T'HH:mm:ss>, " \
+                     f"{FIELD_NAMES.CHECK_OUT_DATE.inner}: <date and time of the check out, in ISO format yyyy-MM-dd'T'HH:mm:ss>, "\
                      f"{FIELD_NAMES.ORDER_NUMBER.inner}: <Leave this blank>, "\
                      f"{FIELD_NAMES.TRANSACTION_AMOUNT.inner}: <Leave this blank>, " \
                      f"{FIELD_NAMES.RESERVATION_ID.inner}: <the reservation id or booking id. if this information is missing" \
