@@ -21,3 +21,7 @@ webdriver-manager
 pytesseract
 pdf2image
 stqdm==0.0.5
+selenium
+seleniumbase
+webdriver-manager
+apify==1.1.4
