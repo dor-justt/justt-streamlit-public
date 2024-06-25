@@ -16,7 +16,7 @@ langchain==0.0.200
 selenium
 seleniumbase
 webdriver-manager
-
+streamlit-toggle-switch
 # hotel pdf parser
 pytesseract
 pdf2image
