@@ -1,9 +1,6 @@
 from typing import Union, List, Dict
 import pandas as pd
 
-import constants
-from constants import  ResponseCategories
-
 
 class ResponsesProcessor:
 

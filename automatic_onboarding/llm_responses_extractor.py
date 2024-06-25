@@ -16,28 +16,11 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 class LlmResponsesExtractor:
 
     def __init__(self):
         pass
-
-    # @staticmethod
-    # def get_response_vertax(prompt):
-    #
-    #     # Create API client.
-    #     credentials = service_account.Credentials.from_service_account_info(
-    #         st.secrets["connections"]
-    #     )
-    #     aiplatform.init(credentials=credentials)
-    #     aiplatform.init(project='datascience-393713')
-    #
-    #     model = TextGenerationModel.from_pretrained("text-bison@001")
-    #     response = model.predict(
-    #         prompt,
-    #         temperature=0.3,
-    #         max_output_tokens=1024,
-    #     )
-    #     return response.text
 
     @staticmethod
     def get_response_gpt(prompt):
@@ -114,7 +97,7 @@ class LlmResponsesExtractor:
         return formatted_responses
 
     @staticmethod
-    def get_questionnaire_responses(url: str, urls: List[str] = None) -> List[Dict]:
+    def get_questionnaire_responses(url: str, urls: List[str] = None) -> Dict:
         llm_prompts = [{"prompt": QuestionnairePrompts.DESCRIPTION, "urls": [{"url": url}]},
                        {"prompt": QuestionnairePrompts.CHANNELS_BILLINGS_DELIVERY_EMAIL, "urls": urls},
                        {"prompt": QuestionnairePrompts.POLICIES, "urls": urls},
