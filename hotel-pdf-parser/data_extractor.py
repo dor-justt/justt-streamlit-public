@@ -33,7 +33,7 @@ class DataExtractor:
                      f"{FIELD_NAMES.RESERVATION_ID.inner}: <the reservation id or booking id. if this information is missing" \
                      f" leave this blank.>, " \
                      f"{FIELD_NAMES.COSTUMER_EMAIL.inner}: <the email address of the guest\customer.>, " \
-                     f"{FIELD_NAMES.IS_CHECKED_IN.inner}: <if the costumer checked in return yes if not return no.>, " \
+                     f"{FIELD_NAMES.IS_CHECKED_IN.inner}: <if the costumer checked in return True if not return False. if the text contains 'no show' or 'no-show' (case insensitive), then this is False>, " \
                      f"{FIELD_NAMES.IS_CONTACTLESS_CHECKED_IN.inner}: <if the costumer checked in via mobile or contactless return yes if the costumer checked in phisically return no.>, " \
                      f"{FIELD_NAMES.NUMBER_OF_GUESTS.inner}: <the total number of guests>, " \
                      f"{FIELD_NAMES.NUMBER_OF_NIGHTS.inner}: <the total number of nights>, " \
@@ -43,7 +43,7 @@ class DataExtractor:
                      f"{FIELD_NAMES.RETURNING_CUSTOMER.inner}: <an indication if the customer is a returning customer. Will be counted as a returning guest if they made more than 1 order using the same account>, " \
                      f"{FIELD_NAMES.BOOKING_CHANNEL.inner}: <the channel used by the cardholder to make the purchase/booking>, " \
                      f"{FIELD_NAMES.CREDITS_USED.inner}: <the amount of credits the customer used in this order>, " \
-                     f"{FIELD_NAMES.CVM.inner}: <the Cardholder Verificaiton Method used (or not used) for the payment>}}.\n" \
+                     f"{FIELD_NAMES.CVM.inner}: <the Cardholder Verificaiton Method used (or not used) for the payment>, " \
                      f"For each value in the json, if you can not get the answer, return an empty string. " \
                      f"Your returned answer must always be a json as described"
 
@@ -54,7 +54,7 @@ class DataExtractor:
             {"role": "user", "content": chunks[0]},  # TODO current path using chunk[0] only
         ]
         chatbot_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-1106",
+            model="gpt-4o",
             response_format={"type": "json_object"},
             temperature=0,
             messages=messages,

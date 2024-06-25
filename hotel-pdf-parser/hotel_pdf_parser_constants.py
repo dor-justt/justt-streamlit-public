@@ -35,5 +35,4 @@ class FieldNames:
     CREDITS_USED: DP = DP("credits_used", "Amount of Credits Used")
     CVM: DP = DP("cardholder_verification_method", "Cardholder Verification Method (Card Present)")
 
-
 FIELD_NAMES = FieldNames()
