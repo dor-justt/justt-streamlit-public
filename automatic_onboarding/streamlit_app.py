@@ -3,7 +3,7 @@ import streamlit_toggle as tog
 import pandas as pd
 from get_links import get_links
 from llm_responses_extractor import LlmResponsesExtractor#get_questionnaire_responses, get_response_single_prompt
-from logo_fetcher import fetch_logo_with_selenium
+from logo_fetcher import fetch_logo
 
 st.header("AI-BOARDING :scream_cat: :100:")
 
@@ -67,7 +67,7 @@ if st.session_state.mode == "Get response by URL":
         # get LOGO
         if get_logo and MERCHANT_NAME is not None and len(MERCHANT_NAME) > 0:
             with st.spinner('Fetching logo'):
-                img, logo_file = fetch_logo_with_selenium(url, MERCHANT_NAME)
+                img, logo_file = fetch_logo(url, MERCHANT_NAME)
                 if img is not None:
                     st.image(img)
                 else:
@@ -103,7 +103,7 @@ if st.session_state.mode == "Get response by URL":
 
                 if get_logo and (MERCHANT_NAME is None or len(MERCHANT_NAME) == 0):
                     with st.spinner('Fetching logo'):
-                        img, logo_files = fetch_logo_with_selenium(url, merchant_name)
+                        img, logo_files = fetch_logo(url, merchant_name)
                         if img is not None:
                             st.image(img[0])
                         else:
