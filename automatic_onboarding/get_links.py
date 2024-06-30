@@ -1,8 +1,4 @@
-# import requests
-# from bs4 import BeautifulSoup
-# from selenium import webdriver
-# from selenium.webdriver.common.by import By
-from typing import Union, List, Dict
+from typing import List
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -41,28 +37,6 @@ def get_links(website_link: str) -> List:
     :return: a list of URLs
     """
     list_links = []
-    # source = "BeautifulSoup"
-    # # create empty dict to not repeat the same link
-    # dict_href_links = {}
-    #
-    # # get html data
-    # html_data = requests.get(website_link).text #getdata(website_link)
-    # soup = BeautifulSoup(html_data, "html.parser")
-    # for link in soup.find_all("a", href=True):
-    #
-    #     # Append to list if new link contains original link
-    #     if "http" in str(link["href"]):
-    #         list_links.append(link["href"])
-    #
-    #     # Include all href that do not start with website link but with "/"
-    #     if str(link["href"]).startswith("/"):
-    #         if link["href"] not in dict_href_links:
-    #             dict_href_links[link["href"]] = None
-    #             link_with_www = website_link + link["href"][1:]
-    #             list_links.append(link_with_www)
-    #
-    # if len(list_links) > 0:
-    #     list_links = filter_links(list_links)
 
     if len(list_links) == 0:
         source = "selenium"

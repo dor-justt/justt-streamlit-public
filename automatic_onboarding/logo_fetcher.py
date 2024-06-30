@@ -7,7 +7,40 @@ import requests
 from io import BytesIO
 from PIL import Image
 import logging
+import serpapi
 logging.basicConfig(level=logging.INFO)
+from typing import List
+
+# needed locally
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
+def fetch_logo(url: str, merchant_name: str, logos_limit: int = 1):
+    output_images, output_paths = fetch_logo_with_serpapi(url, merchant_name, logos_limit)
+    if output_images is None or len(output_images) == 0:
+        output_images, output_paths = fetch_logo_with_selenium(url, merchant_name, logos_limit)
+    return output_images, output_paths
+
+
+def fetch_logo_with_serpapi(url: str, merchant_name: str, logos_limit: int = 1, engine: str = "google_images"):
+    try:
+        params = {
+            "engine": engine,
+            "q": f"{merchant_name} logo",
+        }
+        client = serpapi.Client(api_key=os.getenv("SERP_API_KEY"))
+        results = client.search(params)
+        images_results = results['images_results']
+        images_urls = [img_result['thumbnail'] for img_result in images_results]
+        logging.info(f"Used serpapi with engine {engine}. Found {len(images_urls)} urls")
+    except Exception as e:
+        logging.info(f"could not find logos: {e}")
+        return None, None
+
+    output_images, output_paths = _download_and_save_images(images_urls[:logos_limit])
+    return output_images, output_paths
 
 
 def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1):
@@ -74,22 +107,7 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         #     logo_url = urljoin(url, logo_url)
 
         if len(logo_urls) >= 0:
-            output_images, output_paths = [], []
-            for i, logo_url in enumerate(logo_urls):
-                try:
-                    # Download the logo image
-                    logo_response = requests.get(logo_url)
-                    logo_response.raise_for_status()
-
-                    # Open the image and convert it to JPEG
-                    image = Image.open(BytesIO(logo_response.content))
-                    logo_filename = f"{merchant_name}_logo{i}.jpeg"
-                    image.convert("RGB").save(logo_filename, "JPEG")
-                    output_paths.append(logo_filename)
-                    output_images.append(image.convert("RGB"))
-                except Exception as e:
-                    logging.info(f"processing error in image {i}: {e}")
-
+            output_images, output_paths = _download_and_save_images(logo_urls)
             driver.quit()
             return output_images, output_paths
         else:
@@ -100,11 +118,30 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         return None, None
 
 
+def _download_and_save_images(images_urls: List[str]):
+    output_images, output_paths = [], []
+    for i, logo_url in enumerate(images_urls):
+        try:
+            # Download the logo image
+            logo_response = requests.get(logo_url)
+            logo_response.raise_for_status()
+
+            # Open the image and convert it to JPEG
+            image = Image.open(BytesIO(logo_response.content))
+            logo_filename = f"{merchant_name}_logo{i}.jpeg"
+            image.convert("RGB").save(logo_filename, "JPEG")
+            output_paths.append(logo_filename)
+            output_images.append(image.convert("RGB"))
+        except Exception as e:
+            logging.info(f"processing error in image {i}: {e}")
+    return output_images, output_paths
+
+
 if __name__ == "__main__":
     # Example usage
     url = "https://www.workiz.com/"  # "https://www.example.com"
     merchant_name = "workiz"
-    img, logo_file = fetch_logo_with_selenium(url, merchant_name, 10)
+    img, logo_file = fetch_logo(url, merchant_name, 10)
     if logo_file:
         print(f"Logo saved as {logo_file}")
     else:

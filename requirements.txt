@@ -7,8 +7,6 @@ streamlit==1.26.0
 google-auth==1.35.0
 openai==0.27.8
 langid==1.1.6
-bs4
-google-search-results
 typing-inspect==0.8.0
 typing_extensions==4.5.0
 pydantic==1.10.11
@@ -25,3 +23,5 @@ selenium
 seleniumbase
 webdriver-manager
 apify==1.1.4
+requests
+serpapi
