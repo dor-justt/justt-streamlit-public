@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -14,7 +14,7 @@ options.add_argument("--disable-features=VizDisplayCompositor")
 
 
 def filter_links(links_list: List[str]):
-    word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies", "offerings", "shipping"]
+    word_list = ["terms", "refund", "cancel", "info", "about", "faq", "policy", "policies", "offerings", "shipping", "store", "contact"]
 
     # Function to check if a string contains any word from the word list
     def contains_word(string, word_list):
@@ -30,39 +30,39 @@ def convert_to_dict(links_list: List[str], website_link):
     return urls
 
 
-def get_links(website_link: str) -> List:
+def get_links(website_link: str, max_links = 10) -> Tuple[List, str]:
     """
     get all sub-URLs in a given URL with maximum depth of 1
     :param website_link: parent URL
     :return: a list of URLs
     """
+    key_words = ["terms", "refund", "cancel", "info", "about", "faq", "polic", "offerings", "shipping", "store", "contact"]
+    css_string = "a[href*=terms], a[href*=refund], a[href*=cancel], a[href*=about], a[href*=faq], a[href*=policy], a[href*=policies], " \
+                 "a[href*=offerings], a[href*=contact], a[href*=info], a[href*=support], a[href*=store]"
     list_links = []
+    source = "selenium"
 
     if len(list_links) == 0:
-        source = "selenium"
         driver = webdriver.Chrome(options=options)
         driver.get(website_link)
-        list_links = [element.get_attribute("href") for element in
-                 driver.find_elements(By.CSS_SELECTOR, "a[href*=terms], a[href*=refund], a[href*=cancel], "
-                                                       "a[href*=about], a[href*=faq], "
-                                                       "a[href*=policy], a[href*=policies], a[href*=offerings]")]
+        list_links = [element.get_attribute("href") for element in driver.find_elements(By.CSS_SELECTOR, css_string)]
         driver.quit()
+    print(f"len(list_links) 1: {len(list_links)}")
+    chars = ['=', '?', '&', '%']
+    list_links = [link for link in list_links if all(char not in link for char in chars)]
 
-    search_links = [link for link in list_links if "terms" in link or "polic" in link]
-    for link in search_links:
-        driver = webdriver.Chrome(options=options)
-        driver.get(link)
-        list_links = list_links + [element.get_attribute("href") for element in
-                      driver.find_elements(By.CSS_SELECTOR, "a[href*=refund], a[href*=cancel], a[href*=return]")]
-        driver.quit()
-
+    print(f"len(list_links) 2: {len(list_links)}")
+    # remove duplicates
     if len(list_links) > 0:
-        # remove duplicates
         list_links = list(set(list_links))
-
-    if len(list_links) > 10:
-        list_links = [link for link in list_links if
-               ("terms" in link) or ("refund" in link) or ("return" in link) or ("polic" in link)]
+    res_links = []
+    print(f"len(list_links) 3: {len(list_links)}")
+    # take maximum two from each keyword
+    for key_word in key_words:
+        res_links.extend(sorted([link for link in list_links if key_word in link], key=len)[:2])
+    list_links = list(set(res_links))
+    print(f"len(list_links) 4: {len(list_links)}")
+    print(list_links)
 
     links = convert_to_dict(list_links, website_link)
     return links, source
