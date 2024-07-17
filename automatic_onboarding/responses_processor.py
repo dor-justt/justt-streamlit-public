@@ -1,5 +1,25 @@
 from typing import Union, List, Dict
 import pandas as pd
+from constants import OUTPUTS
+import openai
+import os
+
+
+def get_response_gpt(prompt, system_message=False):
+    # openai.api_key = st.secrets["openai"]["api_key"]
+    openai.api_key = os.getenv(key='OPENAI_API_KEY')
+    messages: List[Dict[str, str]] = []
+    if system_message:
+        messages += [{"role": "system", "content": "You are an assistant that helps to choose the best options based on a company "
+                                                   "description."}]
+    messages += [{"role": "user", "content": prompt}]
+    chatbot_response = openai.ChatCompletion.create(
+        model="gpt-4o",  # "gpt-3.5-turbo-16k",
+        temperature=0,
+        messages=messages,
+    )
+    output = chatbot_response.choices[0].message["content"]
+    return output
 
 
 class ResponsesProcessor:
@@ -37,7 +57,7 @@ class ResponsesProcessor:
         return [cat for cat in categories_response if cat.lower() in categories_to_keep]
 
     @staticmethod
-    def process_llm_responses(responses: List[List[Dict]]):
+    def process_llm_responses_old(responses: List[List[Dict]]):
 
         best_responses = dict()
 
@@ -45,10 +65,10 @@ class ResponsesProcessor:
         best_responses["merchant_name"] = responses[0][0]["company"]
         best_responses["description"] = responses[0][0]["description"]
         best_responses["industry"] = responses[4]["industry"] if len(responses)>4 else None
-        best_responses["offerings"] = responses[5]["offerings"] if len(responses)>4 else None
+        # best_responses["offerings"] = responses[5]["offerings"] if len(responses)>4 else None
 
-        print("---- offerings: ", best_responses["offerings"])
-        print("---- offerings type: ", type(best_responses["offerings"]))
+        # print("---- offerings: ", best_responses["offerings"])
+        # print("---- offerings type: ", type(best_responses["offerings"]))
 
         # # clean_categories
         # best_responses["industry"] = ResponsesProcessor.clean_categories(categories_response=best_responses["industry"],
@@ -141,3 +161,38 @@ class ResponsesProcessor:
             best_responses["liability"] = pd.Series(liability_responses)[0]
 
         return best_responses
+
+    @staticmethod
+    def process_llm_responses(responses: List[Dict]) -> Dict[str, Union[str, List[str]]]:
+        """
+        Notice that the first dictionary comes from the general questions, and the others from the advanced.
+        :param responses:
+        :return:
+        """
+        result = responses.pop(0)
+        # change the company field name to merchant_name
+        result[OUTPUTS.MERCHANT_NAME] = result.pop(OUTPUTS.COMPANY)
+
+        # iterate over each key which has a value that is a list. We shall take their union.
+        for list_field in OUTPUTS.LIST_LIKE_OUTPUTS:
+            if list_field in result:
+                # was part of the general
+                continue
+            lst = [dic.get(list_field, []) for dic in responses]
+            flatten_lst = [item for sublist in lst for item in sublist]
+            result[list_field] = sorted(list(set(flatten_lst)))
+
+        optional_mails = [dic.get(OUTPUTS.CUSTOMER_SUPPORT_EMAIL) for dic in responses]
+        optional_mails = list(set([m for m in optional_mails if m is not None and m not in ('', 'NULL', 'None')]))
+        if len(optional_mails) == 0:
+            result[OUTPUTS.CUSTOMER_SUPPORT_EMAIL] = None
+        elif len(optional_mails) == 1:
+            result[OUTPUTS.CUSTOMER_SUPPORT_EMAIL] = optional_mails[0]
+        else:
+            optional_mails_str = str(optional_mails).replace("'", "")
+            prompt = f"See this list of emails: {optional_mails_str}. Which of them is the most probable to be the customer support " \
+                     f"email for the company called {result[OUTPUTS.MERCHANT_NAME]}? " \
+                     f"return the answer without any explanations or added characters."
+            result[OUTPUTS.CUSTOMER_SUPPORT_EMAIL] = get_response_gpt(prompt)
+
+        return result

@@ -1,7 +1,5 @@
 import concurrent.futures
-# from google.cloud import aiplatform
-# from vertexai.preview.language_models import TextGenerationModel
-# from google.oauth2 import service_account
+
 import streamlit as st
 from apify_client import ApifyClient
 from typing import Union, List, Dict
@@ -23,13 +21,14 @@ class LlmResponsesExtractor:
         pass
 
     @staticmethod
-    def get_response_gpt(prompt):
+    def get_response_gpt(prompt, system_message=False):
         # openai.api_key = st.secrets["openai"]["api_key"]
         openai.api_key = os.getenv(key='OPENAI_API_KEY')
-        messages = [
-            {"role": "system", "content": "You are an assistant that helps to choose the best options based on a company description."},
-            {"role": "user", "content": prompt},
-        ]
+        messages: List[Dict[str, str]] = []
+        if system_message:
+            messages += {"role": "system", "content": "You are an assistant that helps to choose the best options based on a company "
+                                                      "description."}
+        messages += {"role": "user", "content": prompt}
         chatbot_response = openai.ChatCompletion.create(
             model="gpt-4o",  # "gpt-3.5-turbo-16k",
             temperature=0,
@@ -57,6 +56,8 @@ class LlmResponsesExtractor:
             "startUrls": urls,
             # "globs": [],
             "linkSelector": "a[href]",  # a[href*=terms],a[href*=refund]",
+            # "linkSelector": "a[href], a[href*=terms], a[href*=refund], a[href*=cancel], a[href*=about], a[href*=faq], a[href*=policy], "
+            #                 "a[href*=policies], a[href*=offerings], a[href*=store], a[href*=contact], a[href*=info]",
             "instructions": prompt,
             "maxCrawlingDepth": 1,
             "model": "gpt-4o",  # "gpt-3.5-turbo-16k",
@@ -97,7 +98,7 @@ class LlmResponsesExtractor:
         return formatted_responses
 
     @staticmethod
-    def get_questionnaire_responses(url: str, urls: List[str] = None) -> Dict:
+    def get_questionnaire_responses_old(url: str, urls: List[str] = None) -> Dict:
         llm_prompts = [{"prompt": QuestionnairePrompts.DESCRIPTION, "urls": [{"url": url}]},
                        {"prompt": QuestionnairePrompts.CHANNELS_BILLINGS_DELIVERY_EMAIL, "urls": urls},
                        {"prompt": QuestionnairePrompts.POLICIES, "urls": urls},
@@ -127,3 +128,40 @@ class LlmResponsesExtractor:
 
         return responses
 
+    @staticmethod
+    def get_questionnaire_responses(url: str, urls: List[str] = None) -> Dict:
+        llm_prompts = [{"prompt": QuestionnairePrompts.GENERAL, "urls": [{"url": url}]},
+                       {"prompt": QuestionnairePrompts.ADVANCED, "urls": urls}]
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            responses_gpt_raw: List[List[Dict]] = list(executor.map(LlmResponsesExtractor.process_question_apify, llm_prompts))
+
+        # unpack the list of lists to a single list
+        responses_gpt = [item for sublist in responses_gpt_raw for item in sublist if item is not None]
+
+        print("###########")
+        print("###########")
+        print('response length: ', len(responses_gpt))
+        for response in responses_gpt:
+            print(response)
+            # for val in response:
+            #     print(val)
+            print('**************')
+        print("###########")
+        print("###########")
+
+        # if len(responses_gpt) > 0 and len(responses_gpt[0]) > 0 and responses_gpt[0][0] is not None:
+        #    merchant_description = responses_gpt[0][0]["description"]
+            # industry_prompt = merchant_description + " " + QuestionnairePrompts.INDUSTRY
+            # offerings_prompt = merchant_description + " " + QuestionnairePrompts.OFFERINGS
+            # responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(industry_prompt))]
+            # responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(offerings_prompt))]
+
+        print("Full responses: ", responses_gpt)
+        # responses = responses_gpt
+        processed_responses_gpt = ResponsesProcessor.process_llm_responses(responses_gpt)
+        print("------------------------------------------------------------------------------------------------------")
+        print("Processed responses: ", processed_responses_gpt)
+        responses = processed_responses_gpt
+
+        return responses

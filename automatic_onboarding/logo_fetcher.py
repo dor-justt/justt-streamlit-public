@@ -39,7 +39,7 @@ def fetch_logo_with_serpapi(url: str, merchant_name: str, logos_limit: int = 1, 
         logging.info(f"could not find logos: {e}")
         return None, None
 
-    output_images, output_paths = _download_and_save_images(images_urls[:logos_limit])
+    output_images, output_paths = _download_and_save_images(images_urls[:logos_limit], merchant_name=merchant_name)
     return output_images, output_paths
 
 
@@ -107,7 +107,7 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         #     logo_url = urljoin(url, logo_url)
 
         if len(logo_urls) >= 0:
-            output_images, output_paths = _download_and_save_images(logo_urls)
+            output_images, output_paths = _download_and_save_images(logo_urls, merchant_name=merchant_name)
             driver.quit()
             return output_images, output_paths
         else:
@@ -118,7 +118,7 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         return None, None
 
 
-def _download_and_save_images(images_urls: List[str]):
+def _download_and_save_images(images_urls: List[str], merchant_name: str):
     output_images, output_paths = [], []
     for i, logo_url in enumerate(images_urls):
         try:
@@ -139,9 +139,9 @@ def _download_and_save_images(images_urls: List[str]):
 
 if __name__ == "__main__":
     # Example usage
-    url = "https://www.workiz.com/"  # "https://www.example.com"
-    merchant_name = "workiz"
-    img, logo_file = fetch_logo(url, merchant_name, 10)
+    url = "https://www.eneba.com/"  # "https://www.example.com"
+    merchant__name = "eneba"
+    img, logo_file = fetch_logo(url, merchant__name, 10)
     if logo_file:
         print(f"Logo saved as {logo_file}")
     else:
