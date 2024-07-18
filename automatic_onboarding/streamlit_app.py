@@ -2,7 +2,8 @@ import streamlit as st
 import streamlit_toggle as tog
 import pandas as pd
 from get_links import get_links
-from llm_responses_extractor import LlmResponsesExtractor#get_questionnaire_responses, get_response_single_prompt
+from llm_responses_extractor import LlmResponsesExtractor #get_questionnaire_responses, get_response_single_prompt
+from constants import OUTPUTS
 from logo_fetcher import fetch_logo
 
 st.header("AI-BOARDING :scream_cat: :100:")
@@ -67,9 +68,9 @@ if st.session_state.mode == "Get response by URL":
         # get LOGO
         if get_logo and MERCHANT_NAME is not None and len(MERCHANT_NAME) > 0:
             with st.spinner('Fetching logo'):
-                img, logo_file = fetch_logo(url, MERCHANT_NAME)
-                if img is not None:
-                    st.image(img)
+                images, logo_files = fetch_logo(url, MERCHANT_NAME)
+                if images is not None:
+                    st.image(images)
                 else:
                     st.write("logo not found")
 
@@ -88,75 +89,23 @@ if st.session_state.mode == "Get response by URL":
                 st.success('Done!', icon="✅")
 
                 st.subheader(f"**URL:** {url}")
-                merchant_name = MERCHANT_NAME if (MERCHANT_NAME is not None and len(MERCHANT_NAME) > 0) else responses["merchant_name"]
-                description = responses["description"]
-                offerings = responses["offerings"]
-                industry = responses["industry"]
-                channels = responses["channels"]
-                billings = responses["billings"]
-                email_address = responses["emailAddress"]
-                cancellation = responses["cancellation"]
-                refund_policy = responses["refund_policy"]
-                return_policy = responses["return_policy"]
-                delivery_methods = responses["delivery_methods"]
-                liability = responses["liability"]
+                merchant_name = MERCHANT_NAME if (MERCHANT_NAME is not None and len(MERCHANT_NAME) > 0) else responses[OUTPUTS.MERCHANT_NAME]
 
                 if get_logo and (MERCHANT_NAME is None or len(MERCHANT_NAME) == 0):
                     with st.spinner('Fetching logo'):
-                        img, logo_files = fetch_logo(url, merchant_name)
-                        if img is not None:
-                            st.image(img[0])
+                        images, logo_files = fetch_logo(url, merchant_name)
+                        if images is not None:
+                            st.image(images[0])
                         else:
                             st.write("logo not found")
 
-                st.subheader("Merchant name")
-                st.write(merchant_name)
-
-                st.subheader("Merchant description")
-                st.write(description)
-
-                st.subheader("Industry")
-                st.write(industry)
-
-                st.subheader("channels")
-                st.write(channels)
-
-                st.subheader("billings")
-                st.write(billings)
-
-                st.subheader("email_address")
-                st.write(email_address)
-
-                st.subheader("offerings")
-                st.write(offerings)
-
-                st.subheader("cancellation")
-                st.write(cancellation)
-
-                st.subheader("refund_policy")
-                st.write(refund_policy)
-
-                st.subheader("return_policy")
-                st.write(return_policy)
-
-                st.subheader("delivery_methods")
-                st.write(delivery_methods)
-
-                st.subheader("liability")
-                st.write(liability)
+                for output in OUTPUTS.ORDER_FOR_UI:
+                    st.subheader(output)
+                    st.write(responses[output])
 
                 st.divider()
-                df = pd.DataFrame({"question": pd.Series(["merchant_name", "description", "industry", "channels",
-                                                          "billings", "email_address", "offerings", "cancellation",
-                                                          "refund_policy", "return_policy", "delivery_methods",
-                                                          "liability", "url", "urls", "source"]),
-                                   "response": pd.Series([merchant_name, description, industry, channels,
-                                                          billings, email_address, offerings, cancellation,
-                                                          refund_policy, return_policy, delivery_methods, liability, url,
-                                                        urls, source]),
-                                   "like_or_dislike": None,
-                                   "comments": None,
-                                   "suggestion": None})
+
+                df = pd.DataFrame(list(responses.items()), columns=["question", "response"])
 
                 st.download_button(
                     "Download as a CSV",
@@ -166,29 +115,3 @@ if st.session_state.mode == "Get response by URL":
                     key='download-csv'
                 )
                 st.dataframe(df)
-
-
-if st.session_state.mode == "Try it yourself":
-    st.write(f"We welcome new prompt suggestions :blush:, feel free to post them here: https://drive.google.com/drive/folders/1kv4nwb49IhfOl6-SHu-sBZjCH7mtLs3A?usp=drive_link")
-    st.text_input("Prompt", key="prompt")
-    st.markdown(
-            """
-            <style>
-            div.stButton > button:first-child {
-                width: 300px;
-                height: 50px;
-                font-size: 40px;
-                display: flex;
-                margin: auto;
-                background-color: #2E8B57;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    if st.button('Try it yourself!'):
-        single_response = LlmResponsesExtractor.get_response_single_prompt(st.session_state.prompt)
-        st.write(f"**prompt**")
-        st.write(st.session_state.prompt)
-        st.write(f"**response**")
-        st.write(single_response)
