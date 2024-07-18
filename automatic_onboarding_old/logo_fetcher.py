@@ -1,4 +1,3 @@
-from typing import Tuple, List
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -18,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def fetch_logo(url: str, merchant_name: str, logos_limit: int = 1) -> Tuple[List[Image.Image], List[str]]:
+def fetch_logo(url: str, merchant_name: str, logos_limit: int = 1):
     output_images, output_paths = fetch_logo_with_serpapi(url, merchant_name, logos_limit)
     if output_images is None or len(output_images) == 0:
         output_images, output_paths = fetch_logo_with_selenium(url, merchant_name, logos_limit)
@@ -40,7 +39,7 @@ def fetch_logo_with_serpapi(url: str, merchant_name: str, logos_limit: int = 1, 
         logging.info(f"could not find logos: {e}")
         return None, None
 
-    output_images, output_paths = _download_and_save_images(images_urls[:logos_limit], merchant_name=merchant_name)
+    output_images, output_paths = _download_and_save_images(images_urls[:logos_limit])
     return output_images, output_paths
 
 
@@ -108,7 +107,7 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         #     logo_url = urljoin(url, logo_url)
 
         if len(logo_urls) >= 0:
-            output_images, output_paths = _download_and_save_images(logo_urls, merchant_name=merchant_name)
+            output_images, output_paths = _download_and_save_images(logo_urls)
             driver.quit()
             return output_images, output_paths
         else:
@@ -119,14 +118,7 @@ def fetch_logo_with_selenium(url: str, merchant_name: str, logos_limit: int = 1)
         return None, None
 
 
-def _get_image_size(image) -> int:
-    output = BytesIO()
-    image.save(output, format=image.format)  # Save the image to BytesIO
-    image_size = output.tell()  # Get the size of the image in bytes
-    return image_size
-
-
-def _download_and_save_images(images_urls: List[str], merchant_name: str, max_siz_in_bytes: int = 1 * 1024 * 1024):
+def _download_and_save_images(images_urls: List[str]):
     output_images, output_paths = [], []
     for i, logo_url in enumerate(images_urls):
         try:
@@ -138,9 +130,6 @@ def _download_and_save_images(images_urls: List[str], merchant_name: str, max_si
             image = Image.open(BytesIO(logo_response.content))
             logo_filename = f"{merchant_name}_logo{i}.jpeg"
             image.convert("RGB").save(logo_filename, "JPEG")
-            if _get_image_size(image) > max_siz_in_bytes:
-                print(f"dropped image {i} since it is too big")
-                continue
             output_paths.append(logo_filename)
             output_images.append(image.convert("RGB"))
         except Exception as e:
@@ -150,9 +139,9 @@ def _download_and_save_images(images_urls: List[str], merchant_name: str, max_si
 
 if __name__ == "__main__":
     # Example usage
-    url = "https://www.eneba.com/"  # "https://www.example.com"
-    merchant__name = "eneba"
-    img, logo_file = fetch_logo(url, merchant__name, 10)
+    url = "https://www.workiz.com/"  # "https://www.example.com"
+    merchant_name = "workiz"
+    img, logo_file = fetch_logo(url, merchant_name, 10)
     if logo_file:
         print(f"Logo saved as {logo_file}")
     else:

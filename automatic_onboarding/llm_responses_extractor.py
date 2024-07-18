@@ -2,11 +2,10 @@ import concurrent.futures
 
 import streamlit as st
 from apify_client import ApifyClient
-from typing import Union, List, Dict
+from typing import List, Dict, Union
 import ast
-import openai
 
-from constants import QuestionnairePrompts
+from constants import QuestionnairePrompts, OPENAI_MODEL
 from responses_processor import ResponsesProcessor
 
 # needed locally
@@ -17,35 +16,10 @@ load_dotenv()
 
 class LlmResponsesExtractor:
 
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def get_response_gpt(prompt, system_message=False):
-        # openai.api_key = st.secrets["openai"]["api_key"]
-        openai.api_key = os.getenv(key='OPENAI_API_KEY')
-        messages: List[Dict[str, str]] = []
-        if system_message:
-            messages += {"role": "system", "content": "You are an assistant that helps to choose the best options based on a company "
-                                                      "description."}
-        messages += {"role": "user", "content": prompt}
-        chatbot_response = openai.ChatCompletion.create(
-            model="gpt-4o",  # "gpt-3.5-turbo-16k",
-            temperature=0,
-            response_format={"type": "json_object"},
-            messages=messages,
-        )
-        output = chatbot_response.choices[0].message["content"]
-        return output
-
-    # @staticmethod
-    # def get_response_single_prompt(prompt):
-    #     return LlmResponsesExtractor.get_response_vertax(prompt)
-
     @staticmethod
     def process_question_apify(question):
         # Initialize the ApifyClient with your API token
-        # client = ApifyClient(st.secrets["apify"]["api_key"])
+        # apify_api_token = st.secrets["apify"]["api_key"]
         apify_api_token = os.getenv(key="APIFY_API_TOKEN")
         client = ApifyClient(apify_api_token)
         urls = question["urls"]
@@ -54,15 +28,11 @@ class LlmResponsesExtractor:
         # Prepare the Actor input
         run_input = {
             "startUrls": urls,
-            # "globs": [],
-            "linkSelector": "a[href]",  # a[href*=terms],a[href*=refund]",
-            # "linkSelector": "a[href], a[href*=terms], a[href*=refund], a[href*=cancel], a[href*=about], a[href*=faq], a[href*=policy], "
-            #                 "a[href*=policies], a[href*=offerings], a[href*=store], a[href*=contact], a[href*=info]",
+            "linkSelector": "a[href]",
             "instructions": prompt,
             "maxCrawlingDepth": 1,
-            "model": "gpt-4o",  # "gpt-3.5-turbo-16k",
+            "model": OPENAI_MODEL,
             "openaiApiKey": os.getenv(key='OPENAI_API_KEY'),  # st.secrets["openai"]["api_key"],
-            # "targetSelector": "",
             "schema": {
                 "type": "object",
                 "properties": {
@@ -98,45 +68,21 @@ class LlmResponsesExtractor:
         return formatted_responses
 
     @staticmethod
-    def get_questionnaire_responses_old(url: str, urls: List[str] = None) -> Dict:
-        llm_prompts = [{"prompt": QuestionnairePrompts.DESCRIPTION, "urls": [{"url": url}]},
-                       {"prompt": QuestionnairePrompts.CHANNELS_BILLINGS_DELIVERY_EMAIL, "urls": urls},
-                       {"prompt": QuestionnairePrompts.POLICIES, "urls": urls},
-                       {"prompt": QuestionnairePrompts.LIABILITY, "urls": urls}]
-
-        # Using ThreadPoolExecutor to parallelize the processing of questions
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            responses_gpt = list(executor.map(LlmResponsesExtractor.process_question_apify, llm_prompts))
-
-        print("###########")
-        print(responses_gpt)
-        print("###########")
-
-        if len(responses_gpt) > 0 and len(responses_gpt[0]) > 0 and responses_gpt[0][0] is not None:
-            merchant_description = responses_gpt[0][0]["long_description"]
-            industry_prompt = merchant_description + " " + QuestionnairePrompts.INDUSTRY
-            offerings_prompt = merchant_description + " " + QuestionnairePrompts.OFFERINGS
-            responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(industry_prompt))]
-            responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(offerings_prompt))]
-
-        print("Full responses: ", responses_gpt)
-        # responses = responses_gpt
-        processed_responses_gpt = ResponsesProcessor.process_llm_responses(responses_gpt)
-        print("------------------------------------------------------------------------------------------------------")
-        print("Processed responses: ", processed_responses_gpt)
-        responses = processed_responses_gpt
-
-        return responses
-
-    @staticmethod
-    def get_questionnaire_responses(url: str, urls: List[str] = None) -> Dict:
+    def get_questionnaire_responses(url: str, urls: List[Dict[str, str]] = None) -> Dict[str, Union[str, List[str]]]:
+        """
+        Uses openai through apify in order to answer the questionare with the url that was given, and the list of child urls
+        :param url: the 'parent' url that was given from the user.
+        :param urls: The list of child urls in the shape of [{"url": url1}, {"url": url2}, ...]
+        :return: Dictionary with the questionare answers
+        """
         llm_prompts = [{"prompt": QuestionnairePrompts.GENERAL, "urls": [{"url": url}]},
                        {"prompt": QuestionnairePrompts.ADVANCED, "urls": urls}]
 
+        # use multithread to speed up performance
         with concurrent.futures.ThreadPoolExecutor() as executor:
             responses_gpt_raw: List[List[Dict]] = list(executor.map(LlmResponsesExtractor.process_question_apify, llm_prompts))
 
-        # unpack the list of lists to a single list
+        # We got a list of lists. One list per prompt. Each such list is of size #urls. unpack the list of lists to a single list
         responses_gpt = [item for sublist in responses_gpt_raw for item in sublist if item is not None]
 
         print("###########")
@@ -144,21 +90,12 @@ class LlmResponsesExtractor:
         print('response length: ', len(responses_gpt))
         for response in responses_gpt:
             print(response)
-            # for val in response:
-            #     print(val)
             print('**************')
         print("###########")
         print("###########")
 
-        # if len(responses_gpt) > 0 and len(responses_gpt[0]) > 0 and responses_gpt[0][0] is not None:
-        #    merchant_description = responses_gpt[0][0]["description"]
-            # industry_prompt = merchant_description + " " + QuestionnairePrompts.INDUSTRY
-            # offerings_prompt = merchant_description + " " + QuestionnairePrompts.OFFERINGS
-            # responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(industry_prompt))]
-            # responses_gpt = responses_gpt + [ast.literal_eval(LlmResponsesExtractor.get_response_gpt(offerings_prompt))]
-
         print("Full responses: ", responses_gpt)
-        # responses = responses_gpt
+        # aggregate and process the results
         processed_responses_gpt = ResponsesProcessor.process_llm_responses(responses_gpt)
         print("------------------------------------------------------------------------------------------------------")
         print("Processed responses: ", processed_responses_gpt)
