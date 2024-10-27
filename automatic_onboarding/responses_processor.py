@@ -9,7 +9,7 @@ def get_response_gpt(prompt):
     openai.api_key = os.getenv(key='OPENAI_API_KEY')
     messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
     chatbot_response = openai.ChatCompletion.create(
-        model="gpt-4o",  # "gpt-3.5-turbo-16k",
+        model="gpt-4o-mini",  # "gpt-3.5-turbo-16k",
         temperature=0,
         messages=messages,
     )
