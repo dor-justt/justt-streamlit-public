@@ -1,6 +1,6 @@
 from typing import List
 
-OPENAI_MODEL = "gpt-4o"  # "gpt-3.5-turbo-16k"
+OPENAI_MODEL = "gpt-4o-mini"  # "gpt-3.5-turbo-16k"
 REDUCE_HELLUCINATIONS_STR: str = "You can only choose out the options provided above, " \
                                  "dont invent other options. Return the answer as a list of strings, which can be empty if none of the " \
                                  "options apply. Include on ly answers you are certain of."

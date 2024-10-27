@@ -44,7 +44,7 @@ def get_links(website_link: str) -> Tuple[List, str]:
         driver.quit()
     print(f"len(list_links) 1: {len(list_links)}")
 
-    # remove pages with irrelevant signs, sinse they are usually child pages of what we need
+    # remove pages with irrelevant signs, since they are usually child pages of what we need
     chars = ['=', '?', '&', '%']
     list_links = [link for link in list_links if all(char not in link for char in chars)]
     print(f"len(list_links) 2: {len(list_links)}")
