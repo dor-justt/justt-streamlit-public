@@ -55,7 +55,7 @@ def health_check():
 
 
 @app.route('/api/get_answer', methods=['POST'])
-# @require_api_key
+@require_api_key
 def get_answer():
     try:
         data = request.get_json()
