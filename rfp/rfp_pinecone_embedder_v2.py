@@ -1,16 +1,16 @@
 from typing import List, Dict, Union
 import pandas as pd
+import uuid
 from pathlib import Path
 from pinecone import Pinecone, QueryResponse
 from pinecone_text.sparse import BM25Encoder, SparseVector
 from pinecone_text.hybrid import hybrid_convex_scale
 from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
-from rfp_constants import CSV_FORMAT
 from rfp_utils import load_csv, load_rfp_files_dir
 # needed locally
 import os
 import logging
+from rfp_utils import _format_question_and_answer_string
 from dotenv import load_dotenv
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -37,14 +37,34 @@ class RFPPinceconeEmbedder:
         else:
             logging.info('Sparse model not loaded')
 
-    def upsert_question(self, embedding_id, question, answer):
-        question_embedding = self._generate_dense_embedding(question)
-        values = {
+    def upsert_question(self, question: str, answer: str, embedding_id: str = None):
+        embeddings = []
+        txt = _format_question_and_answer_string(question, answer)
+        question_dense_embedding = self._generate_dense_embedding(txt)
+        question_sparse_embedding = self._generate_sparse_embedding(txt)
+        if embedding_id is None:
+            embedding_id = self._generate_id()
+        embeddings.append({
             "id": str(embedding_id),
-            "values": question_embedding,
+            "values": question_dense_embedding,
+            "sparse_values": question_sparse_embedding,
             "metadata": {"question": question, "answer": answer}
-        }
-        self.index.upser(values)
+        })
+        return self.index.upsert(embeddings)
+
+    def _generate_id(self, max_attempts=10):
+        for _ in range(max_attempts):
+            # Generate a new UUID and convert to string
+            new_id = 'user_input_'+str(uuid.uuid4())
+
+            # Check if ID exists in index
+            fetch_response = self.index.fetch(ids=[new_id])
+
+            # If the ID doesn't exist in the index (empty vectors returned), return it
+            if not fetch_response.vectors:
+                return new_id
+
+        raise RuntimeError(f"Failed to generate unique ID after {max_attempts} attempts")
 
     def upsert_df(self, df: pd.DataFrame):
         embeddings = []
@@ -68,24 +88,7 @@ class RFPPinceconeEmbedder:
 
     def upsert_csv(self, file_path):
         df = load_csv(file_path)
-        embeddings = []
-        batch_size = 100
-        for i, row in tqdm(df.iterrows(), total=df.shape[0]):
-            question_dense_embedding = self._generate_dense_embedding(row['txt'])
-            question_sparse_embedding = self._generate_sparse_embedding(row['txt'])
-            embeddings.append({
-                "id": row['id'],
-                "values": question_dense_embedding,
-                "sparse_values": question_sparse_embedding,
-                "metadata": {"question": row['Question'], "answer": row['Answer']}
-            })
-
-            if len(embeddings) >= batch_size:
-                self.index.upsert(embeddings)
-                embeddings = []
-        # Upsert any remaining embeddings
-        if len(embeddings) > 0:
-            self.index.upsert(embeddings, namespace='questionnaires')
+        self.upsert_df(df)
 
     def get_matches(self, question: str, alpha: float = 0.7):
         # get the vector of embeddings
@@ -124,10 +127,6 @@ def embed_rfp_files(files_path, rfp_pc_embedder):
     else:
         raise ValueError("The path added is neither an existing directory or a valid csv file")
     rfp_pc_embedder.upsert_df(df)
-
-# import nltk
-# nltk.download('punkt_tab')
-# Main execution
 
 
 if __name__ == "__main__":
