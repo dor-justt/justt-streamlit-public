@@ -29,3 +29,4 @@ pinecone~=5.3.1
 pinecone-text
 flask~=3.0.2
 Pillow~=9.3.0
+sentence-transformers
