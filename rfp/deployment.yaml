@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rfp-server
+  namespace: machine-learning
+spec:
+  replicas: 2  # Number of pods you want running
+  selector:
+    matchLabels:
+      app: rfp-server
+  template:
+    metadata:
+      labels:
+        app: rfp-server
+    spec:
+      containers:
+      - name: rfp-server
+        image: 295246714779.dkr.ecr.us-east-1.amazonaws.com/rfp-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rfp-secrets
+              key: OPENAI_API_KEY
+        - name: PINECONE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rfp-secrets
+              key: PINECONE_API_KEY
+        - name: PINECONE_RFP_INDEX
+          valueFrom:
+            secretKeyRef:
+              name: rfp-secrets
+              key: PINECONE_RFP_INDEX
+        - name: RFP_SERVER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rfp-secrets
+              key: RFP_SERVER_API_KEY

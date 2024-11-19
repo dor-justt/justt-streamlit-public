@@ -8,3 +8,5 @@ class CSV_FORMAT:
     QUESTION = 'Question'
     ANSWER = 'Answer'
     COMMENT = 'Comment'
+
+

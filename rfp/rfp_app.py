@@ -1,6 +1,6 @@
 import streamlit as st
 
-from rfp_filler import RFPFiller
+from rfp.rfp_filler import RFPFiller
 
 rfp_fil = RFPFiller()
 

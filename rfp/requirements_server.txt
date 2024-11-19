@@ -11,22 +11,14 @@ typing-inspect==0.8.0
 typing_extensions>=4.5.0
 pydantic==1.10.11
 langchain==0.0.200
-selenium
-seleniumbase
-webdriver-manager
 streamlit-toggle-switch
 # hotel pdf parser
-pytesseract~=0.3.10
-pdf2image~=1.16.3
+# pdf2image~=1.16.3
 stqdm==0.0.5
-selenium
-seleniumbase
-webdriver-manager
-apify==1.1.4
 requests~=2.32.3
-serpapi~=0.1.5
 pinecone~=5.3.1
 pinecone-text
 flask~=3.0.2
-Pillow~=9.3.0
+# Pillow~=9.3.0
 sentence-transformers
+nltk

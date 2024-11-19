@@ -138,15 +138,18 @@ __pycache__
 .idea
 .idea/
 
-# argumentability
-argumentability/credentials.json
-argumentability/token.json
-argumentability/venv
-argumentability/data
-argumentability/plots
-
-# catboost
-fraud-detection/fraud_detection/catboost_info/
 
 # data
 *.xlsx
+
+# make files
+.Makefile
+
+# yamls
+*.yaml
+
+# docker
+Dockerfile
+
+# logs
+**/logs/

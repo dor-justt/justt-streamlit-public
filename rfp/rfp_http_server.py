@@ -8,15 +8,19 @@ from functools import wraps
 import os
 from datetime import datetime
 import traceback
-from rfp_filler import RFPFiller
+from rfp.rfp_filler import RFPFiller
 rfp_fil = RFPFiller()
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
+
+# Get the absolute path
+base_dir = os.path.dirname(os.path.abspath(__file__))
+logs_dir = os.path.join(base_dir, 'logs')
 
 # Configure logging
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir, mode=0o777, exist_ok=True)
 
-file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
+file_handler = RotatingFileHandler(os.path.join(logs_dir, 'app.log'), maxBytes=10240, backupCount=10)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
 ))
@@ -29,7 +33,7 @@ app.logger.info('Flask server startup')
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        api_key = request.headers.get('RFP_SERVER_API_KEY')
+        api_key = request.headers.get('Rfp-Server-Api-Key')
         if api_key and api_key == os.environ.get('RFP_SERVER_API_KEY'):
             return f(*args, **kwargs)
         return jsonify({'error': 'Invalid or missing API key'}), 401
@@ -92,18 +96,18 @@ def save_answer():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-        if 'query' not in data:
+        if 'question' not in data:
             return jsonify({'error': 'Missing query field'}), 400
         if 'answer' not in data:
             return jsonify({'error': 'Missing answer field'}), 400
         question = data['question']
         answer = data['answer']
-        response = rfp_fil.rfp_pinecone_embedder.upsert_question(question, answer)
+        response = rfp_fil.rfp_pinecone_embedder.upsert_question(question, answer)  # should be {'upserted_count': 1}
 
-        app.logger.info(f'Successfully processed request for input: {response}')
+        app.logger.info(f'Successfully processed request: {response}')
 
         return jsonify({
-            'pc_response': response,
+            'pc_response': str(response),
             'timestamp': datetime.utcnow().isoformat()
         })
 
@@ -113,6 +117,11 @@ def save_answer():
             'error': 'Error processing request',
             'timestamp': datetime.utcnow().isoformat()
         }), 500
+
+
+app.logger.info("Registered Routes:")
+for rule in app.url_map.iter_rules():
+    app.logger.info(f"{rule.endpoint}: {rule.methods} - {rule.rule}")
 
 
 if __name__ == '__main__':
