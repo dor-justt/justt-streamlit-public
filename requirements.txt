@@ -19,14 +19,11 @@ streamlit-toggle-switch
 pytesseract~=0.3.10
 pdf2image~=1.16.3
 stqdm==0.0.5
-selenium
-seleniumbase
-webdriver-manager
 apify==1.1.4
-requests~=2.32.3
 serpapi~=0.1.5
 pinecone~=5.3.1
 pinecone-text
 flask~=3.0.2
 Pillow~=9.3.0
 sentence-transformers
+requests
