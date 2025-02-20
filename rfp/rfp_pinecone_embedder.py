@@ -235,7 +235,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--rfp_files_dir",
         help="rfp_files_dir",
-        required=True,
         type=str,
         default="rfp_files"
     )
