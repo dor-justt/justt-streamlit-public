@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rfp-server-service
+  namespace: machine-learning
+spec:
+  type: LoadBalancer  # This creates an AWS ELB
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: rfp-server

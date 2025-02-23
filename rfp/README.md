@@ -48,6 +48,21 @@ To retrain the sparse vectors and update all question embeddings:
 python rfp_pinecone_embedder.py --train_sparse_model --update_pinecone_embedding
 ```
 
+## To push to ECR (and build along the way)
+```bash
+make push
+```
+## To push yamls to kubernetes
+```bash
+kubectl apply -f rfp/service.yaml
+kubectl apply -f rfp/deployment.yaml
+```
+
+## To restart the pods after change in image / helm
+```bash
+kubectl get pods -n machine-learning | awk '{print $1}' | xargs kubectl delete pod -n machine-learning --force --grace-period=0
+```
+
 ## Environment Variables
 The following environment variables are required:
 - `OPENAI_API_KEY`: Your OpenAI API key
@@ -59,5 +74,7 @@ The following environment variables are required:
 - Ensure all required environment variables are set before running the application
 - The server runs on port 5000 by default
 - Make sure to replace `your-key` with actual API keys when running the Docker container
+
+### To debug - get list of pods:
 
 
