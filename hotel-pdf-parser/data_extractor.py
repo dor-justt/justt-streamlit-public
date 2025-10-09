@@ -1,5 +1,5 @@
 import json
-import openai
+from openai import OpenAI
 
 from hotel_pdf_parser_constants import FIELD_NAMES
 
@@ -10,7 +10,6 @@ load_dotenv()
 
 
 class DataExtractor:
-    openai.api_key = os.getenv(key='OPENAI_API_KEY')
     SYSTEM_CONTENT = f"You are an assistant that helps extract data from text which is parsed from PDF invoices. " \
                      f"You will receive a text, and return a json with the following: " \
                      f"{{{FIELD_NAMES.VENUE_TITLE.inner}: <the full title of the vendor>, " \
@@ -49,16 +48,17 @@ class DataExtractor:
 
     @staticmethod
     def extract_data(chunks):
+        client = OpenAI()
         messages = [
             {"role": "system", "content": DataExtractor.SYSTEM_CONTENT},
             {"role": "user", "content": chunks[0]},  # TODO current path using chunk[0] only
         ]
-        chatbot_response = openai.ChatCompletion.create(
+        chatbot_response = client.chat.completions.create(
             model="gpt-4o",
             response_format={"type": "json_object"},
             temperature=0,
             messages=messages,
         )
-        output = chatbot_response.choices[0].message["content"]
+        output = chatbot_response.choices[0].message.content
         result = json.loads(output)
         return result
