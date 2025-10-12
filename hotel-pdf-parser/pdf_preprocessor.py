@@ -121,9 +121,7 @@ class PDFPreprocessor:
                     continue
 
                 page_text = PDFPreprocessor._parse_nvidia_response_text(resp.json())
-                # debug
-                print("page_text", page_text, flush=True)
-                print("**************", flush=True)
+
                 page_text = PDFPreprocessor._strip_latex_tables(page_text)
                 all_pages_text.append(page_text.strip())
             except Exception as e:

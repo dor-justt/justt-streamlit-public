@@ -37,7 +37,7 @@ def main():
         use_nvidia =  engine=="NVIDIA"
         
         # step 1: preprocess the pdf
-        with st.spinner(f'Parsing PDF with {"NVIDIA" if use_nvidia else "Tesseract OCR"}...'):
+        with st.spinner(f'Parsing PDF with {"NVIDIA" if use_nvidia else "Tesseract OCR"}....'):
                 extracted_text, chunks = PDFPreprocessor.preprocess_pdf(
                     uploaded_file,
                     use_nvidia=use_nvidia
