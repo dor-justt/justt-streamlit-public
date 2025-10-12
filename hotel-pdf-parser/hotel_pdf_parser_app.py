@@ -9,6 +9,13 @@ def main():
     st.title('Justt Hotel PDF parser')
 
     uploaded_file = st.file_uploader("Choose a file")
+    
+    engine = st.radio(
+        "Parsing engine",
+        ["Tesseract OCR", "NVIDIA"],
+        index=0,
+        horizontal=True
+        )
     st.markdown(
         """
         <style>
@@ -26,11 +33,21 @@ def main():
     )
     chargeback_id = st.text_input("chargebackId", '')
     if st.button("GO!", key="go_button") and uploaded_file is not None:
+        
+        use_nvidia =  engine=="NVIDIA"
+        
+        # step 1: preprocess the pdf
+        with st.spinner(f'Parsing PDF with {"NVIDIA" if use_nvidia else "Tesseract OCR"}...'):
+                extracted_text, chunks = PDFPreprocessor.preprocess_pdf(
+                    uploaded_file,
+                    use_nvidia=use_nvidia
+                )
 
-        # Preprocess result
-        extracted_text, chunks = PDFPreprocessor.preprocess_pdf(uploaded_file)
-
-        # LLM
+        if not chunks:
+            st.error("No chunks found")
+            return
+        
+        # step 2: query the LLM
         with st.spinner('Querying the LLM...'):
             result = DataExtractor.extract_data(chunks)
 
