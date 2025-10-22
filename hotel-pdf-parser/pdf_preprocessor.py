@@ -9,7 +9,7 @@ import base64
 import json
 from PIL import Image
 from pdf2image.exceptions import PDFPageCountError
-
+import time
 
 class PDFPreprocessor:
     CHUNK_SIZE = 3500
@@ -77,7 +77,13 @@ class PDFPreprocessor:
 
     @staticmethod
     def _imagelist2text_nvidia(image_list: List) -> str:
-        """Extract text from images using NVIDIA API with per-page error handling."""
+        """
+        Extract text from images using NVIDIA's chat completions API.
+        - Sends each page image independently using the markdown_no_bbox tool.
+        - Uses JPEG at quality 95 and stable DPI (via _bytes2imagelist) to avoid overflows.
+        - Implements per-page error handling: a failed page is logged and skipped, the run continues.
+        - Parses response text and gently flattens LaTeX tables without aggressive deletions.
+        """
         api_key = os.getenv("NVIDIA_API_KEY")
         if not api_key:
             raise RuntimeError("Missing NVIDIA_API_KEY env var")
@@ -94,6 +100,7 @@ class PDFPreprocessor:
                 b64, mime = PDFPreprocessor._pil_image_to_base64(img)
                 media_tag = f'<img src="data:{mime};base64,{b64}" />'
 
+                # Request: single-image content with tool_choice set to markdown_no_bbox
                 inputs = {
                     "model": PDFPreprocessor.NVIDIA_MODEL,  # "nvidia/nemoretriever-parse"
                     "messages": [
@@ -101,7 +108,7 @@ class PDFPreprocessor:
                     ],
                     "tools": [
                         {"type": "function", "function": {"name": PDFPreprocessor.NVIDIA_TOOL}}
-                    ],  # "markdown_no_bbox"
+                    ],  # first-step tool: "markdown_no_bbox"
                     "tool_choice": {
                         "type": "function",
                         "function": {"name": PDFPreprocessor.NVIDIA_TOOL},
@@ -109,19 +116,22 @@ class PDFPreprocessor:
                     "max_tokens": 2048,
                     "temperature": 0,
                 }
-
+                start_time = time.time()
                 resp = requests.post(PDFPreprocessor.NVIDIA_URL, headers=headers, json=inputs, timeout=120)
+                end_time = time.time()
+                print(f"NVIDIA API call took {end_time - start_time} seconds", flush=True)
                 if resp.status_code >= 400:
                     try:
                         print(f"NVIDIA error for page {idx} payload:", resp.json())
                     except Exception:
                         print(f"NVIDIA error for page {idx} text:", resp.text)
-                    # Continue to next page instead of crashing
+                    # Continue to next page instead of crashing the entire run
                     all_pages_text.append("")  # Add empty string for failed page
                     continue
 
                 page_text = PDFPreprocessor._parse_nvidia_response_text(resp.json())
 
+                # Loss-friendly table flattening (preserves inner text)
                 page_text = PDFPreprocessor._strip_latex_tables(page_text)
                 all_pages_text.append(page_text.strip())
             except Exception as e:
