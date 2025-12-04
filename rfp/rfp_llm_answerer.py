@@ -98,7 +98,7 @@ class RFPLlmAnswerer:
                 {"role": "user", "content": user_prompt}
             ]
         completion = self.openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-mini",
             messages=messages
         )
         if return_prompt:
